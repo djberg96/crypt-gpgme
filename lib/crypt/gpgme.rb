@@ -8,6 +8,8 @@ module Crypt
     include Crypt::GPGME::Functions
     extend Crypt::GPGME::Functions
 
+    class Error < StandardError; end
+
     def initialize
       gpgme_check_version(nil) # Initialize subsystems
     end
@@ -25,8 +27,28 @@ module Crypt
       def check_version(required = nil)
         gpgme_check_version(required)
       end
+
+      # Set a global flag. The possible flags are:
+      #
+      # * debug
+      # * disable-gpgconf
+      # * gpg-name (or gpgconf-name)
+      # * require-gnupg
+      # * inst-type
+      # * w32-inst-dir
+      #
+      # Example:
+      #
+      #   Crypt::GPGME.set_global_flag("debug", "9:/Users/your_userid/mygpgme.log")
+      #
+      def set_global_flag(key, value)
+        if gpgme_set_global_flag(key, value) != 0
+          raise Error, "gpgme_set_global_flag failed"
+        end
+      end
     end
   end
 end
 
-p Crypt::GPGME.new
+p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
+p Crypt::GPGME.check_version
