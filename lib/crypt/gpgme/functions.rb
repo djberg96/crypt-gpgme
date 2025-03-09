@@ -7,6 +7,7 @@ module Crypt
       ffi_lib :gpgme
 
       attach_function :gpgme_check_version, [:string], :string
+      attach_function :gpgme_get_dirinfo, [:string], :string
       attach_function :gpgme_set_global_flag, [:string, :string], :int
     end
   end

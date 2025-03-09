@@ -1,6 +1,7 @@
 require_relative 'gpgme/constants'
 require_relative 'gpgme/functions'
 require_relative 'gpgme/context'
+require_relative 'gpgme/engine'
 
 module Crypt
   class GPGME
@@ -50,5 +51,6 @@ module Crypt
   end
 end
 
-p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
+#p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
 p Crypt::GPGME.check_version
+p Crypt::GPGME::Engine.new.dir_info
