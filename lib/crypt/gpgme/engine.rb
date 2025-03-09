@@ -31,6 +31,10 @@ module Crypt
           gpgme_get_dirinfo(what)
         end
 
+        # Returns an array of hash information about supported protocols
+        # on your platform. The hash includes the protocol name, home
+        # directory, version and required version.
+        #
         def info
           info = EngineInfo.new
           err = gpgme_get_engine_info(info)
