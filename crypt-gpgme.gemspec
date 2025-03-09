@@ -15,7 +15,9 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files = Dir['doc/*.rdoc']
 
   spec.add_dependency('ffi', '~> 1.1')
-  spec.add_development_dependency('rspec', '~> 3.9')
+
+  spec.add_development_dependency('rspec')
+  spec.add_development_dependency('mkmf-lite')
   spec.add_development_dependency('rake')
   spec.add_development_dependency('rubocop')
   spec.add_development_dependency('rubocop-rspec')
