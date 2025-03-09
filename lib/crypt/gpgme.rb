@@ -8,6 +8,7 @@ module Crypt
     include Crypt::GPGME::Constants
     include Crypt::GPGME::Functions
     extend Crypt::GPGME::Functions
+    extend Crypt::GPGME::Constants
 
     class Error < StandardError; end
 
@@ -53,5 +54,4 @@ end
 
 #p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
 p Crypt::GPGME.check_version
-p Crypt::GPGME::Engine.dir_info
-p Crypt::GPGME::Engine.dir_info("datadir")
+p Crypt::GPGME::Engine.check_version

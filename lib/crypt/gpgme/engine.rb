@@ -6,12 +6,16 @@ module Crypt
   class GPGME
     class Engine
       include Crypt::GPGME::Constants
-      include Crypt::GPGME::Functions
+      extend Crypt::GPGME::Constants
       extend Crypt::GPGME::Functions
 
       class << self
-        def check_version
-          #gpgme_engine_check_version
+        # Verifies that the engine implementing the +protocol+ is installed
+        # in the expected path and meets the version requirement of GPGME.
+        # Returns true if verified, false otherwise.
+        #
+        def check_version(protocol = GPGME_PROTOCOL_OPENPGP)
+          gpgme_engine_check_version(protocol) == GPG_ERR_NO_ERROR
         end
 
         # Returns a string for the associated value of +what+, or nil if no value
