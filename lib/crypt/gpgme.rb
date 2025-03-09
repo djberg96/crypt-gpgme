@@ -53,5 +53,7 @@ module Crypt
 end
 
 #p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
+require 'pp'
 p Crypt::GPGME.check_version
 p Crypt::GPGME::Engine.check_version
+pp Crypt::GPGME::Engine.info

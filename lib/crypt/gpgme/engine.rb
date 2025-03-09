@@ -8,6 +8,7 @@ module Crypt
       include Crypt::GPGME::Constants
       extend Crypt::GPGME::Constants
       extend Crypt::GPGME::Functions
+      extend Crypt::GPGME::Structs
 
       class << self
         # Verifies that the engine implementing the +protocol+ is installed
@@ -28,6 +29,31 @@ module Crypt
         #
         def dir_info(what = 'homedir')
           gpgme_get_dirinfo(what)
+        end
+
+        def info
+          info = EngineInfo.new
+          err = gpgme_get_engine_info(info)
+
+          if err != GPG_ERR_NO_ERROR
+            raise SystemCallError.new('gpgme_get_engine_info', err)
+          end
+
+          arr = []
+
+          while !info[:next].null?
+            arr << {
+              :protocol    => info[:protocol],
+              :file_name   => info[:file_name],
+              :home_dir    => info[:home_dir],
+              :version     => info[:version],
+              :req_version => info[:req_version]
+            } if info[:version]
+
+            info = EngineInfo.new(info[:next])
+          end
+
+          arr
         end
       end
     end
