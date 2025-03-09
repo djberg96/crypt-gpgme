@@ -12,6 +12,8 @@ module Crypt
 
     class Error < StandardError; end
 
+    VERSION = '0.1.0'
+
     def initialize
       gpgme_check_version(nil) # Initialize subsystems
     end
