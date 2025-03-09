@@ -19,7 +19,7 @@ RSpec.describe Crypt::GPGME do
     let(:dummy){ Class.new{ extend Mkmf::Lite } }
 
     example 'engine_info is the expected size' do
-      expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('gpgme_engine_info_t', 'gpgme.h'))
+      expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('struct _gpgme_engine_info', 'gpgme.h'))
     end
   end
 end

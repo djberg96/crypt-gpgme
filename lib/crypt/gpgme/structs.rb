@@ -24,9 +24,9 @@ module Crypt
           :next, :pointer,
           :protocol, :gpgme_protocol_t,
           :file_name, :string,
-          :home_dir, :string,
           :version, :string,
-          :req_version, :string
+          :req_version, :string,
+          :home_dir, :string
         )
       end
     end
