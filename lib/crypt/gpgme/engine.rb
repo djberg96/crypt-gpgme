@@ -9,12 +9,22 @@ module Crypt
       include Crypt::GPGME::Functions
       extend Crypt::GPGME::Functions
 
-      def check_version
-        #gpgme_engine_check_version
-      end
+      class << self
+        def check_version
+          #gpgme_engine_check_version
+        end
 
-      def dir_info(what = 'homedir')
-        gpgme_get_dirinfo(what)
+        # Returns a string for the associated value of +what+, or nil if no value
+        # is found. Uses 'homedir' by default.
+        #
+        # Examples:
+        #
+        #   puts Crypt::GPGME::Engine.dir_info
+        #   puts Crypt::GPGME::Engine.dir_info("datadir")
+        #
+        def dir_info(what = 'homedir')
+          gpgme_get_dirinfo(what)
+        end
       end
     end
   end

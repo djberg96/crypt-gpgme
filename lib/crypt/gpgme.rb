@@ -53,4 +53,5 @@ end
 
 #p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
 p Crypt::GPGME.check_version
-p Crypt::GPGME::Engine.new.dir_info
+p Crypt::GPGME::Engine.dir_info
+p Crypt::GPGME::Engine.dir_info("datadir")
