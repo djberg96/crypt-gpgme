@@ -43,7 +43,7 @@ module Crypt
 
           while !info[:next].null?
             arr << {
-              :protocol    => info[:protocol],
+              :protocol    => gpgme_get_protocol_name(info[:protocol]),
               :file_name   => info[:file_name],
               :home_dir    => info[:home_dir],
               :version     => info[:version],
