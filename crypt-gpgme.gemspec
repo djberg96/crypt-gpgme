@@ -17,6 +17,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency('ffi', '~> 1.1')
 
   spec.add_development_dependency('rspec')
+  spec.add_development_dependency('rspec_boolean')
   spec.add_development_dependency('mkmf-lite')
   spec.add_development_dependency('rake')
   spec.add_development_dependency('rubocop')

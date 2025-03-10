@@ -1,6 +1,10 @@
+require 'ffi'
+
 module Crypt
   class GPGME
     module Constants
+      extend FFI::Library
+
       GPG_ERR_NO_ERROR = 0
       GPG_ERR_GENERAL = 1
       GPG_ERR_UNKNOWN_PACKET = 2
@@ -597,6 +601,12 @@ module Crypt
       GPGME_PROTOCOL_SPAWN   = 6
       GPGME_PROTOCOL_DEFAULT = 254
       GPGME_PROTOCOL_UNKNOWN = 255
+
+      GPGME_CONF_BASIC = 0
+      GPGME_CONF_ADVANCED = 1
+      GPGME_CONF_EXPERT = 2
+      GPGME_CONF_INVISIBLE = 3
+      GPGME_CONF_INTERNAL = 4
     end
   end
 end
