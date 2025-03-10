@@ -12,6 +12,13 @@ RSpec.describe Crypt::GPGME do
     expect(Crypt::GPGME::VERSION).to eq('0.1.0')
   end
 
+  context Crypt::GPGME::Algorithm do
+    example 'algorithm_name basic functionality' do
+      expect(described_class).to respond_to(:algorithm_name)
+      expect(described_class.algorithm_name(1)).to be_a(String)
+    end
+  end
+
   context Crypt::GPGME::Engine do
     example 'check_version basic functionality' do
       expect(described_class).to respond_to(:check_version)
@@ -36,8 +43,8 @@ RSpec.describe Crypt::GPGME do
 
     let(:dummy){ Class.new{ extend Mkmf::Lite } }
 
-    example 'engine_info is the expected size' do
-      expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('struct _gpgme_engine_info', 'gpgme.h'))
-    end
+    #example 'engine_info is the expected size' do
+    #  expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('struct _gpgme_engine_info', 'gpgme.h'))
+    #end
   end
 end

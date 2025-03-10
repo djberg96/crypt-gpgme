@@ -602,11 +602,25 @@ module Crypt
       GPGME_PROTOCOL_DEFAULT = 254
       GPGME_PROTOCOL_UNKNOWN = 255
 
+      # gpgme_conf_level_t
       GPGME_CONF_BASIC = 0
       GPGME_CONF_ADVANCED = 1
       GPGME_CONF_EXPERT = 2
       GPGME_CONF_INVISIBLE = 3
       GPGME_CONF_INTERNAL = 4
+
+      # gpgme_pubkey_algo_t
+      GPGME_PK_RSA   = 1
+      GPGME_PK_RSA_E = 2
+      GPGME_PK_RSA_S = 3
+      GPGME_PK_KYBER = 8
+      GPGME_PK_ELG_E = 16
+      GPGME_PK_DSA   = 17
+      GPGME_PK_ECC   = 18
+      GPGME_PK_ELG   = 20
+      GPGME_PK_ECDSA = 301
+      GPGME_PK_ECDH  = 302
+      GPGME_PK_EDDSA = 303
     end
   end
 end

@@ -2,6 +2,7 @@ require_relative 'gpgme/constants'
 require_relative 'gpgme/functions'
 require_relative 'gpgme/context'
 require_relative 'gpgme/engine'
+require_relative 'gpgme/algorithm'
 
 module Crypt
   class GPGME
