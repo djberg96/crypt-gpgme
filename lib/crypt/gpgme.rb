@@ -59,4 +59,4 @@ require 'pp'
 p Crypt::GPGME.check_version
 p Crypt::GPGME::Engine.check_version
 #p Crypt::GPGME::Structs::EngineInfo.size
-pp Crypt::GPGME::Engine.info
+pp Crypt::GPGME::Engine.get_info

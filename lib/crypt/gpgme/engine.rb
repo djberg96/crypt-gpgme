@@ -35,7 +35,7 @@ module Crypt
         # on your platform. The hash includes the protocol name, home
         # directory, version and required version.
         #
-        def info
+        def get_info
           info = EngineInfo.new
           err = gpgme_get_engine_info(info)
 
@@ -58,6 +58,18 @@ module Crypt
           end
 
           arr
+        end
+
+        # Change the configuration of a backend engine, and thus change the
+        # executable program and configuration directory to be used.
+        #
+        # You can make these changes the default or set them for some
+        # contexts individually.
+        #
+        def set_info(protocol, file_name, home_dir)
+          rv = gpgme_set_engine_info(protocol, file_name, home_dir)
+          raise SystemCallError.new('gpgme_set_engine_info', rv) if rv != GPG_ERR_NO_ERROR
+          true
         end
       end
     end
