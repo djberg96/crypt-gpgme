@@ -7,8 +7,10 @@ module Crypt
       extend FFI::Library
       include Crypt::GPGME::Constants
 
+      # This is an opaque data structure, so I'm really just
+      # reserving a blob of memory here.
       class Context < FFI::Struct
-        layout(:_unused, :uint)
+        layout(:_unused, [:void, 1024])
       end
 
       class EngineInfo < FFI::Struct
