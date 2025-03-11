@@ -11,6 +11,7 @@ module Crypt
       attach_function :gpgme_engine_check_version, [:int], :int
       attach_function :gpgme_get_engine_info, [:pointer], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
+      attach_function :gpgme_get_protocol, [:pointer], :uint
       attach_function :gpgme_get_protocol_name, [:uint], :string
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_new, [:pointer], :uint
@@ -19,6 +20,7 @@ module Crypt
       attach_function :gpgme_release, [:pointer], :void
       attach_function :gpgme_set_engine_info, [:uint, :string, :string], :int
       attach_function :gpgme_set_global_flag, [:string, :string], :int
+      attach_function :gpgme_set_protocol, [:pointer, :uint], :uint
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
       attach_function :gpgme_strsource, [:uint], :string

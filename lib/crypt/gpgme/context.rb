@@ -18,6 +18,19 @@ module Crypt
         end
       end
 
+      def protocol
+        gpgme_get_protocol(@ctx)
+      end
+
+      def protocol=(proto)
+        err = gpgme_set_protocol(@ctx, proto)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_protocol failed: #{errstr}"
+        end
+      end
+
       def release
         gpgme_release(@ctx)
       end

@@ -65,4 +65,6 @@ pp Crypt::GPGME::Engine.get_info
 =end
 p Crypt::GPGME.check_version
 ctx = Crypt::GPGME::Context.new
-ctx.release
+p ctx.protocol
+ctx.protocol = Crypt::GPGME::GPGME_PROTOCOL_ASSUAN
+p ctx.protocol
