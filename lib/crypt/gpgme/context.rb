@@ -9,13 +9,17 @@ module Crypt
       include Crypt::GPGME::Functions
 
       def initialize
-        ctx = Crypt::GPGME::Structs::Context.new
-        err = gpgme_new(ctx)
+        @ctx = Crypt::GPGME::Structs::Context.new
+        err = gpgme_new(@ctx)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_new failed: #{errstr}"
         end
+      end
+
+      def release
+        gpgme_release(@ctx)
       end
     end
   end
