@@ -7,6 +7,10 @@ module Crypt
       extend FFI::Library
       include Crypt::GPGME::Constants
 
+      class Context < FFI::Struct
+        layout(:_unused, :uint)
+      end
+
       class EngineInfo < FFI::Struct
         layout(
           :next, :pointer,
