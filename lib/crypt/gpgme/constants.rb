@@ -621,6 +621,23 @@ module Crypt
       GPGME_PK_ECDSA = 301
       GPGME_PK_ECDH  = 302
       GPGME_PK_EDDSA = 303
+
+      # gpgme_hash_algo_t
+      GPGME_MD_NONE          = 0
+      GPGME_MD_MD5           = 1
+      GPGME_MD_SHA1          = 2
+      GPGME_MD_RMD160        = 3
+      GPGME_MD_MD2           = 5
+      GPGME_MD_TIGER         = 6
+      GPGME_MD_HAVAL         = 7
+      GPGME_MD_SHA256        = 8
+      GPGME_MD_SHA384        = 9
+      GPGME_MD_SHA512        = 10
+      GPGME_MD_SHA224        = 11
+      GPGME_MD_MD4           = 301
+      GPGME_MD_CRC32	       = 302
+      GPGME_MD_CRC32_RFC1510 = 303
+      GPGME_MD_CRC24_RFC2440 = 304
     end
   end
 end
