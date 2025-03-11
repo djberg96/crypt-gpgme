@@ -18,6 +18,32 @@ module Crypt
         end
       end
 
+      def get_engine_info
+        ptr = gpgme_ctx_get_engine_info(@ctx)
+        info = Crypt::GPGME::Structs::EngineInfo.new(ptr)
+
+        arr = []
+        return arr if info.null?
+
+        while !info[:next].null?
+          arr << {
+            :protocol    => gpgme_get_protocol_name(info[:protocol]),
+            :file_name   => info[:file_name],
+            :home_dir    => info[:home_dir],
+            :version     => info[:version],
+            :req_version => info[:req_version]
+          } if info[:version]
+
+          info = EngineInfo.new(info[:next])
+        end
+
+        arr
+      end
+
+      def set_engine_info(proto, file_name, home_dir)
+        gpgme_ctx_set_engine_info(@ctx, proto, file_name, home_dir)
+      end
+
       def protocol
         gpgme_get_protocol(@ctx)
       end

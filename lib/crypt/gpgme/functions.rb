@@ -8,6 +8,8 @@ module Crypt
       ffi_lib :gpgme
 
       attach_function :gpgme_check_version, [:string], :string
+      attach_function :gpgme_ctx_get_engine_info, [:pointer], :pointer
+      attach_function :gpgme_ctx_set_engine_info, [:pointer], :int
       attach_function :gpgme_engine_check_version, [:int], :int
       attach_function :gpgme_get_engine_info, [:pointer], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
