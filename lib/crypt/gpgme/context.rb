@@ -65,6 +65,14 @@ module Crypt
         end
       end
 
+      def offline?
+        gpgme_get_offline(@ctx)
+      end
+
+      def offline=(bool)
+        gpgme_set_offline(@ctx, bool)
+      end
+
       def text_mode?
         gpgme_get_textmode(@ctx)
       end
