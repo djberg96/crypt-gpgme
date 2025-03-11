@@ -18,6 +18,14 @@ module Crypt
         end
       end
 
+      def armor=(bool)
+        gpgme_set_armor(@ctx, bool)
+      end
+
+      def armor?
+        gpgme_get_armor(@ctx)
+      end
+
       def get_engine_info
         ptr = gpgme_ctx_get_engine_info(@ctx)
         info = Crypt::GPGME::Structs::EngineInfo.new(ptr)
