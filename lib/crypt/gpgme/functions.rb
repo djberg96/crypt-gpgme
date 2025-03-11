@@ -17,6 +17,9 @@ module Crypt
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_set_engine_info, [:uint, :string, :string], :int
       attach_function :gpgme_set_global_flag, [:string, :string], :int
+      attach_function :gpgme_strerror, [:uint], :string
+      attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
+      attach_function :gpgme_strsource, [:uint], :string
     end
   end
 end
