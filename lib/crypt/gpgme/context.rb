@@ -65,6 +65,14 @@ module Crypt
         end
       end
 
+      def text_mode?
+        gpgme_get_textmode(@ctx)
+      end
+
+      def text_mode=(bool)
+        gpgme_set_textmode(@ctx, bool)
+      end
+
       def release
         gpgme_release(@ctx)
       end

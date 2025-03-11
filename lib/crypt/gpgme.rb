@@ -69,6 +69,7 @@ ctx = Crypt::GPGME::Context.new
 #ctx.protocol = Crypt::GPGME::GPGME_PROTOCOL_ASSUAN
 #p ctx.protocol
 #p ctx.get_engine_info
-p ctx.armor?
-ctx.armor = true
-p ctx.armor?
+#p ctx.armor?
+#ctx.armor = true
+#p ctx.armor?
+p ctx.text_mode?
