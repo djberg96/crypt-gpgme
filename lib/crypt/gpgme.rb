@@ -76,6 +76,7 @@ ctx = Crypt::GPGME::Context.new
 #p ctx.pinentry_mode
 #p ctx.include_certs
 #p ctx.keylist_mode
-p ctx.get_flag("redraw")
-p ctx.get_flag("known-notations")
-p ctx.get_flag("bogus")
+#p ctx.get_flag("redraw")
+#p ctx.get_flag("known-notations")
+#p ctx.get_flag("bogus")
+p ctx.list_keys

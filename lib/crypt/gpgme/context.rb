@@ -143,6 +143,41 @@ module Crypt
       def release
         gpgme_release(@ctx)
       end
+
+      def list_keys(pattern = nil, secret = 0)
+        err = gpgme_op_keylist_start(@ctx, pattern, secret)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_protocol failed: #{errstr}"
+        end
+
+        arr = []
+        key = Crypt::GPGME::Structs::Key.new(ptr)
+
+        loop do
+          err = gpgme_op_keylist_next(@ctx, key)
+
+          break if err == GPG_ERR_EOF
+
+          if err != GPG_ERR_EOF && err != GPG_ERR_NO_ERROR
+            errstr = gpgme_strerror(err)
+            raise Crypt::GPGME::Error, "gpgme_op_keylist_next failed: #{errstr}"
+          end
+
+          arr << key
+          key = Key.new(key[:next])
+        end
+
+        err = gpgme_op_keylist_end(@ctx)
+
+        if err != GPG_ERR_EOF && err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_keylist_end failed: #{errstr}"
+        end
+
+        arr
+      end
     end
   end
 end
