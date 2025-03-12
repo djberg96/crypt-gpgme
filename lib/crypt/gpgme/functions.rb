@@ -33,6 +33,7 @@ module Crypt
       attach_function :gpgme_set_global_flag, [:string, :string], :int
       attach_function :gpgme_set_include_certs, [:pointer, :int], :void
       attach_function :gpgme_set_keylist_mode, [:pointer, :int], :uint
+      attach_function :gpgme_set_locale, [:pointer, :int, :string], :uint
       attach_function :gpgme_set_offline, [:pointer, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [:pointer, :uint], :uint
       attach_function :gpgme_set_protocol, [:pointer, :uint], :uint

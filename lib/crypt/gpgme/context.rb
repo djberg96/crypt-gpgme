@@ -92,6 +92,17 @@ module Crypt
         mode
       end
 
+      def set_locale(category, value)
+        err = gpgme_set_locale(@ctx, category, value)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_keylist_mode failed: #{errstr}"
+        end
+
+        {category => value}
+      end
+
       def protocol
         gpgme_get_protocol(@ctx)
       end
