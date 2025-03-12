@@ -15,6 +15,7 @@ module Crypt
       attach_function :gpgme_get_ctx_flag, [:pointer, :string], :string
       attach_function :gpgme_get_engine_info, [:pointer], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
+      attach_function :gpgme_get_key, [:pointer, :string, :pointer, :int], :uint
       attach_function :gpgme_get_include_certs, [:pointer], :int
       attach_function :gpgme_get_keylist_mode, [:pointer], :uint
       attach_function :gpgme_get_offline, [:pointer], :bool
@@ -24,6 +25,12 @@ module Crypt
       attach_function :gpgme_get_textmode, [:pointer], :bool
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_new, [:pointer], :uint
+      attach_function :gpgme_op_keylist_start, [:pointer, :string, :int], :uint
+      attach_function :gpgme_op_keylist_end, [:pointer], :uint
+      attach_function :gpgme_op_keylist_ext_start, [:pointer, :pointer, :int, :int], :uint
+      attach_function :gpgme_op_keylist_from_data_start, [:pointer, :pointer, :int], :uint
+      attach_function :gpgme_op_keylist_next, [:pointer, :pointer], :uint
+      attach_function :gpgme_op_keylist_result, [:pointer], :uint
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_release, [:pointer], :void
