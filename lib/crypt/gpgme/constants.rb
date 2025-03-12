@@ -687,6 +687,32 @@ module Crypt
       GPGME_KEYLIST_MODE_WITH_V5FPR      = 1024
       GPGME_KEYLIST_MODE_LOCATE          = (1|2)
       GPGME_KEYLIST_MODE_LOCATE_EXTERNAL = (1|2|512)
+
+      # gpgme_validity_t
+      GPGME_VALIDITY_UNKNOWN   = 0
+      GPGME_VALIDITY_UNDEFINED = 1
+      GPGME_VALIDITY_NEVER     = 2
+      GPGME_VALIDITY_MARGINAL  = 3
+      GPGME_VALIDITY_FULL      = 4
+      GPGME_VALIDITY_ULTIMATE  = 5
+
+      # gpgme_tofu_policy_t
+      GPGME_TOFU_POLICY_NONE    = 0
+      GPGME_TOFU_POLICY_AUTO    = 1
+      GPGME_TOFU_POLICY_GOOD    = 2
+      GPGME_TOFU_POLICY_UNKNOWN = 3
+      GPGME_TOFU_POLICY_BAD     = 4
+      GPGME_TOFU_POLICY_ASK     = 5
+
+      # gpgme_keyorg_t
+      GPGME_KEYORG_UNKNOWN = 0
+      GPGME_KEYORG_KS      = 1
+      GPGME_KEYORG_DANE    = 3
+      GPGME_KEYORG_WKD     = 4
+      GPGME_KEYORG_URL     = 5
+      GPGME_KEYORG_FILE    = 6
+      GPGME_KEYORG_SELF    = 7
+      GPGME_KEYORG_OTHER   = 31
     end
   end
 end
