@@ -60,6 +60,21 @@ module Crypt
         gpgme_set_include_certs(@ctx, num)
       end
 
+      def keylist_mode
+        gpgme_get_keylist_mode(@ctx)
+      end
+
+      def keylist_mode=(mode)
+        err = gpgme_set_keylist_mode(@ctx, mode)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_keylist_mode failed: #{errstr}"
+        end
+
+        mode
+      end
+
       def protocol
         gpgme_get_protocol(@ctx)
       end
