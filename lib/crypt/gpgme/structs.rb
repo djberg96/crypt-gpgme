@@ -96,22 +96,69 @@ module Crypt
         )
       end
 
-=begin
       class UserId < FFI::Struct
         layout(
+          :next, :pointer,
+          :revoked, :bool,
+          :invalid, :bool,
+          :_unused, :uint,
+          :origin, :uint,
+          :validity, :uint,
+          :uid, :string,
+          :name, :string,
+          :email, :string,
+          :comment, :string,
+          :signatures, :pointer,
+          :_last_keysig, :pointer,
+          :tofu, :uint,
+          :last_update, :ulong,
+          :uidhash, :string
         )
       end
 
       class TofuInfo < FFI::Struct
         layout(
+          :next, :pointer,
+          :validity, :uint,
+          :policy, :uint,
+          :_rfu, :uint,
+          :signcount, :ushort,
+          :encrcount, :ushort,
+          :signfirst, :ulong,
+          :signlast, :ulong,
+          :encrfirst, :ulong,
+          :encrlast, :ulong,
+          :description, :string
         )
       end
 
       class KeySig < FFI::Struct
         layout(
+          :next, :pointer,
+          :revoked, :bool,
+          :expired, :bool,
+          :invalid, :bool,
+          :exportable, :bool,
+          :_unused, :uint,
+          :trust_depth, :uint,
+          :trust_value, :uint,
+          :pubkey_algo, :uint,
+          :keyid, :string,
+          :_keyid, [:char, 17],
+          :timestamp, :long,
+          :expires, :long,
+          :status, :uint,
+          :_obsolete_class, :uint,
+          :uid, :string,
+          :name, :string,
+          :email, :string,
+          :comment, :string,
+          :sig_class, :uint,
+          :notation, :uint,
+          :_last_notation, :pointer,
+          :trust_scope, :string
         )
       end
-=end
 
       class RevocationKey < FFI::Struct
         layout(
