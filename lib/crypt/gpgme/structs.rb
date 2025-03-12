@@ -13,6 +13,7 @@ module Crypt
         layout(:_unused, [:void, 1024])
       end
 
+      # gpgme_engine_info_t
       class EngineInfo < FFI::Struct
         layout(
           :next, :pointer,
@@ -96,6 +97,7 @@ module Crypt
         )
       end
 
+      # gpgme_user_id_t
       class UserId < FFI::Struct
         layout(
           :next, :pointer,
@@ -116,6 +118,7 @@ module Crypt
         )
       end
 
+      # gpgme_tofu_info_t
       class TofuInfo < FFI::Struct
         layout(
           :next, :pointer,
@@ -132,6 +135,7 @@ module Crypt
         )
       end
 
+      # gpgme_key_sig_t
       class KeySig < FFI::Struct
         layout(
           :next, :pointer,
@@ -160,6 +164,7 @@ module Crypt
         )
       end
 
+      # gpgme_revocation_key_t
       class RevocationKey < FFI::Struct
         layout(
           :next, :pointer,
