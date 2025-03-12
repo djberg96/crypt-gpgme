@@ -12,6 +12,7 @@ module Crypt
       attach_function :gpgme_ctx_set_engine_info, [:pointer], :int
       attach_function :gpgme_engine_check_version, [:int], :int
       attach_function :gpgme_get_armor, [:pointer], :bool
+      attach_function :gpgme_get_ctx_flag, [:pointer, :string], :string
       attach_function :gpgme_get_engine_info, [:pointer], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
       attach_function :gpgme_get_include_certs, [:pointer], :int
@@ -27,6 +28,7 @@ module Crypt
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_release, [:pointer], :void
       attach_function :gpgme_set_armor, [:pointer, :bool], :void
+      attach_function :gpgme_set_ctx_flag, [:pointer, :string, :string], :uint
       attach_function :gpgme_set_engine_info, [:uint, :string, :string], :int
       attach_function :gpgme_set_global_flag, [:string, :string], :int
       attach_function :gpgme_set_include_certs, [:pointer, :int], :void

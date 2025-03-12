@@ -26,6 +26,21 @@ module Crypt
         gpgme_get_armor(@ctx)
       end
 
+      def get_flag(name)
+        gpgme_get_ctx_flag(@ctx, name)
+      end
+
+      def set_flag(name, value)
+        err = gpme_set_ctx_flg(@ctx, name, value)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_keylist_mode failed: #{errstr}"
+        end
+
+        {name => value}
+      end
+
       def get_engine_info
         ptr = gpgme_ctx_get_engine_info(@ctx)
         info = Crypt::GPGME::Structs::EngineInfo.new(ptr)
