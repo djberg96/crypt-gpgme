@@ -73,6 +73,14 @@ module Crypt
         gpgme_set_offline(@ctx, bool)
       end
 
+      def pinentry_mode
+        gpgme_get_pinentry_mode(@ctx)
+      end
+
+      def pinentry_mode=(mode)
+        gpgme_set_pinentry_mode(@ctx, mode)
+      end
+
       def text_mode?
         gpgme_get_textmode(@ctx)
       end

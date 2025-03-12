@@ -72,4 +72,5 @@ ctx = Crypt::GPGME::Context.new
 #p ctx.armor?
 #ctx.armor = true
 #p ctx.armor?
-p ctx.text_mode?
+#p ctx.text_mode?
+p ctx.pinentry_mode

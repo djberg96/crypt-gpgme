@@ -665,6 +665,13 @@ module Crypt
       GPGME_MD_CRC32	       = 302
       GPGME_MD_CRC32_RFC1510 = 303
       GPGME_MD_CRC24_RFC2440 = 304
+
+      # gpgme_pinentry_mode_t
+      GPGME_PINENTRY_MODE_DEFAULT  = 0,
+      GPGME_PINENTRY_MODE_ASK      = 1,
+      GPGME_PINENTRY_MODE_CANCEL   = 2,
+      GPGME_PINENTRY_MODE_ERROR    = 3,
+      GPGME_PINENTRY_MODE_LOOPBACK = 4
     end
   end
 end

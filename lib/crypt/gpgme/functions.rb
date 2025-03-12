@@ -15,6 +15,7 @@ module Crypt
       attach_function :gpgme_get_engine_info, [:pointer], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
       attach_function :gpgme_get_offline, [:pointer], :bool
+      attach_function :gpgme_get_pinentry_mode, [:pointer], :uint
       attach_function :gpgme_get_protocol, [:pointer], :uint
       attach_function :gpgme_get_protocol_name, [:uint], :string
       attach_function :gpgme_get_textmode, [:pointer], :bool
@@ -27,6 +28,7 @@ module Crypt
       attach_function :gpgme_set_engine_info, [:uint, :string, :string], :int
       attach_function :gpgme_set_global_flag, [:string, :string], :int
       attach_function :gpgme_set_offline, [:pointer, :bool], :void
+      attach_function :gpgme_set_pinentry_mode, [:pointer, :uint], :uint
       attach_function :gpgme_set_protocol, [:pointer, :uint], :uint
       attach_function :gpgme_set_textmode, [:pointer, :bool], :void
       attach_function :gpgme_strerror, [:uint], :string
