@@ -16,6 +16,8 @@ module Crypt
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_new failed: #{errstr}"
         end
+
+        yield self if block_given?
       end
 
       def armor=(bool)
