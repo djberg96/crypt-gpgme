@@ -52,6 +52,14 @@ module Crypt
         gpgme_ctx_set_engine_info(@ctx, proto, file_name, home_dir)
       end
 
+      def include_certs
+        gpgme_get_include_certs(@ctx)
+      end
+
+      def include_certs=(num)
+        gpgme_set_include_certs(@ctx, num)
+      end
+
       def protocol
         gpgme_get_protocol(@ctx)
       end
