@@ -60,8 +60,28 @@ RSpec.describe Crypt::GPGME do
 
     let(:dummy){ Class.new{ extend Mkmf::Lite } }
 
-    #example 'engine_info is the expected size' do
-    #  expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('struct _gpgme_engine_info', 'gpgme.h'))
-    #end
+    example 'engine_info is the expected size' do
+      expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('struct _gpgme_engine_info', 'gpgme.h'))
+    end
+
+    example 'key is the expected size' do
+      expect(Crypt::GPGME::Structs::Key.size).to eq(dummy.check_sizeof('struct _gpgme_key', 'gpgme.h'))
+    end
+
+    example 'subkey is the expected size' do
+      expect(Crypt::GPGME::Structs::Subkey.size).to eq(dummy.check_sizeof('struct _gpgme_subkey', 'gpgme.h'))
+    end
+
+    example 'keysig is the expected size' do
+      expect(Crypt::GPGME::Structs::KeySig.size).to eq(dummy.check_sizeof('struct _gpgme_key_sig', 'gpgme.h'))
+    end
+
+    example 'userid is the expected size' do
+      expect(Crypt::GPGME::Structs::UserId.size).to eq(dummy.check_sizeof('struct _gpgme_user_id', 'gpgme.h'))
+    end
+
+    example 'tofuinfo is the expected size' do
+      expect(Crypt::GPGME::Structs::TofuInfo.size).to eq(dummy.check_sizeof('struct _gpgme_tofu_info', 'gpgme.h'))
+    end
   end
 end
