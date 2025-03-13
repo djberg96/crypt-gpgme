@@ -126,12 +126,12 @@ module Crypt
           :policy, :uint, 10,
           :_rfu, :uint, 11,
           :signcount, :ushort, 12,
-          :encrcount, :ushort,
-          :signfirst, :ulong,
-          :signlast, :ulong,
-          :encrfirst, :ulong,
-          :encrlast, :ulong,
-          :description, :string
+          :encrcount, :ushort, 14,
+          :signfirst, :ulong, 16,
+          :signlast, :ulong, 24,
+          :encrfirst, :ulong, 32,
+          :encrlast, :ulong, 40,
+          :description, :string, 48
         )
       end
 
