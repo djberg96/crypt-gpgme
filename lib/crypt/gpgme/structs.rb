@@ -122,10 +122,10 @@ module Crypt
       class TofuInfo < FFI::Struct
         layout(
           :next, :pointer,
-          :validity, :uint,
-          :policy, :uint,
-          :_rfu, :uint,
-          :signcount, :ushort,
+          :validity, :uint, 9,
+          :policy, :uint, 10,
+          :_rfu, :uint, 11,
+          :signcount, :ushort, 12,
           :encrcount, :ushort,
           :signfirst, :ulong,
           :signlast, :ulong,
