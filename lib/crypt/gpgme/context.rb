@@ -10,6 +10,7 @@ module Crypt
 
       def initialize
         @ctx = Crypt::GPGME::Structs::Context.new
+        gpgme_check_version(nil)
         err = gpgme_new(@ctx)
 
         if err != GPG_ERR_NO_ERROR
