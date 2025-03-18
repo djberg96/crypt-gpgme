@@ -53,6 +53,15 @@ RSpec.describe Crypt::GPGME do
     end
   end
 
+  context Crypt::GPGME::Context do
+    subject{ described_class.new }
+
+    example 'armor? basic functionality' do
+      expect(subject).to respond_to(:armor?)
+      expect(subject.armor?).to be_boolean
+    end
+  end
+
   context 'FFI' do
     before(:context) do
       require 'mkmf-lite'
