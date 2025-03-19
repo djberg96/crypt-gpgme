@@ -159,7 +159,7 @@ module Crypt
           key = Structs::Key.new
           err = gpgme_op_keylist_next(@ctx.pointer, key)
           break if err != GPG_ERR_NO_ERROR
-          arr << key
+          arr << key.to_hash
           gpgme_key_unref(key)
         end
 
