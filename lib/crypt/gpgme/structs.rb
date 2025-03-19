@@ -7,6 +7,19 @@ module Crypt
       extend FFI::Library
       include Crypt::GPGME::Constants
 
+      class FFI::Struct
+        def to_hash
+          hash = {}
+
+          members.each do |member|
+            next if member.to_s.start_with?('_')
+            hash[member] = self[member]
+          end
+
+          hash
+        end
+      end
+
       # This is an opaque data structure, so I'm really just
       # reserving a blob of memory here.
       class Context < FFI::Struct
@@ -26,43 +39,6 @@ module Crypt
           :version, :string,
           :req_version, :string,
           :home_dir, :string
-        )
-      end
-
-      # gpgme_key_t
-      class Key < FFI::Struct
-        layout(
-          :_refs, :uint,
-          :revoked, :bool, 4,
-          :expired, :bool, 4,
-          :disabled, :bool, 4,
-          :invalid, :bool, 4,
-          :can_encrypt, :bool, 5,
-          :can_sign, :bool, 5,
-          :can_certify, :bool, 5,
-          :secret, :bool, 5,
-          :can_authenticate, :bool, 6,
-          :is_qualified, :bool, 6,
-          :has_encrypt, :bool, 6,
-          :has_sign, :bool, 6,
-          :has_certify, :bool, 7,
-          :has_authenticate, :bool, 7,
-          :_unused, :uint, 7,
-          :origin, :int, 7,
-          :protocol, :uint, 8,
-          :issuer_serial, :string,
-          :issuer_name, :string,
-          :chain_id, :string,
-          :owner_trust, :pointer,
-          :subkeys, :pointer,
-          :uids, :pointer,
-          :_last_subkey, :pointer,
-          :_last_uid, :pointer,
-          :keylist_mode, :pointer,
-          :fpr, :string,
-          :last_update, :ulong,
-          :revocation_keys, :pointer,
-          :_last_revkey, :pointer
         )
       end
 
@@ -119,6 +95,43 @@ module Crypt
           :tofu, :uint,
           :last_update, :ulong,
           :uidhash, :string
+        )
+      end
+
+      # gpgme_key_t
+      class Key < FFI::Struct
+        layout(
+          :_refs, :uint,
+          :revoked, :bool, 4,
+          :expired, :bool, 4,
+          :disabled, :bool, 4,
+          :invalid, :bool, 4,
+          :can_encrypt, :bool, 5,
+          :can_sign, :bool, 5,
+          :can_certify, :bool, 5,
+          :secret, :bool, 5,
+          :can_authenticate, :bool, 6,
+          :is_qualified, :bool, 6,
+          :has_encrypt, :bool, 6,
+          :has_sign, :bool, 6,
+          :has_certify, :bool, 7,
+          :has_authenticate, :bool, 7,
+          :_unused, :uint, 7,
+          :origin, :int, 7,
+          :protocol, :uint, 8,
+          :issuer_serial, :string,
+          :issuer_name, :string,
+          :chain_id, :string,
+          :owner_trust, :pointer,
+          :subkeys, ::Crypt::GPGME::Structs::Subkey,
+          :uids, ::Crypt::GPGME::Structs::UserId,
+          :_last_subkey, :pointer,
+          :_last_uid, :pointer,
+          :keylist_mode, :pointer,
+          :fpr, :string,
+          :last_update, :ulong,
+          :revocation_keys, :pointer,
+          :_last_revkey, :pointer
         )
       end
 
