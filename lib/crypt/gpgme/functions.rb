@@ -24,6 +24,8 @@ module Crypt
       attach_function :gpgme_get_protocol_name, [:uint], :string
       attach_function :gpgme_get_textmode, [Structs::Context], :bool
       attach_function :gpgme_hash_algo_name, [:uint], :string
+      attach_function :gpgme_key_ref, [Structs::Key], :void
+      attach_function :gpgme_key_unref, [Structs::Key], :void
       attach_function :gpgme_new, [Structs::Context], :uint
       attach_function :gpgme_op_keylist_start, [Structs::Context, :string, :int], :uint
       attach_function :gpgme_op_keylist_end, [Structs::Context], :uint
