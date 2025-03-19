@@ -34,6 +34,8 @@ module Crypt
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_release, [Structs::Context], :void
+      attach_function :gpgme_result_ref, [:pointer], :void
+      attach_function :gpgme_result_unref, [:pointer], :void
       attach_function :gpgme_set_armor, [Structs::Context, :bool], :void
       attach_function :gpgme_set_ctx_flag, [Structs::Context, :string, :string], :uint
       attach_function :gpgme_set_engine_info, [:uint, :string, :string], :int
