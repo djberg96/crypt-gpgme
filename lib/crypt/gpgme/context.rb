@@ -34,11 +34,11 @@ module Crypt
       end
 
       def set_flag(name, value)
-        err = gpme_set_ctx_flg(@ctx.pointer, name, value)
+        err = gpme_set_ctx_flag(@ctx.pointer, name, value)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
-          raise Crypt::GPGME::Error, "gpgme_set_keylist_mode failed: #{errstr}"
+          raise Crypt::GPGME::Error, "gpgme_set_ctx_flag failed: #{errstr}"
         end
 
         {name => value}
@@ -98,7 +98,7 @@ module Crypt
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
-          raise Crypt::GPGME::Error, "gpgme_set_keylist_mode failed: #{errstr}"
+          raise Crypt::GPGME::Error, "gpgme_set_locale failed: #{errstr}"
         end
 
         {category => value}
@@ -150,7 +150,7 @@ module Crypt
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
-          raise Crypt::GPGME::Error, "gpgme_set_protocol failed: #{errstr}"
+          raise Crypt::GPGME::Error, "gpgme_op_keylist_start failed: #{errstr}"
         end
 
         arr = []
