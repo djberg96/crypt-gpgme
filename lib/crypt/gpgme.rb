@@ -63,6 +63,7 @@ p Crypt::GPGME::Engine.check_version
 #p Crypt::GPGME::Structs::EngineInfo.size
 pp Crypt::GPGME::Engine.get_info
 =end
+=begin
 p Crypt::GPGME.check_version
 ctx = Crypt::GPGME::Context.new
 #p ctx.protocol
@@ -80,3 +81,4 @@ ctx = Crypt::GPGME::Context.new
 #p ctx.get_flag("known-notations")
 #p ctx.get_flag("bogus")
 p ctx.list_keys
+=end
