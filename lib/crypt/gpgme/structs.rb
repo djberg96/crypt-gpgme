@@ -10,7 +10,11 @@ module Crypt
       # This is an opaque data structure, so I'm really just
       # reserving a blob of memory here.
       class Context < FFI::Struct
-        layout(:_unused, [:void, 1024])
+        layout(:context, :pointer)
+
+        def pointer
+          self[:context]
+        end
       end
 
       # gpgme_engine_info_t
