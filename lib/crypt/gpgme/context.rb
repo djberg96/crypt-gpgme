@@ -154,20 +154,13 @@ module Crypt
         end
 
         arr = []
-        key = Crypt::GPGME::Structs::Key.new(ptr)
 
-        loop do
+        while err == GPG_ERR_NO_ERROR
+          key = Structs::Key.new
           err = gpgme_op_keylist_next(@ctx.pointer, key)
-
-          break if err == GPG_ERR_EOF
-
-          if err != GPG_ERR_EOF && err != GPG_ERR_NO_ERROR
-            errstr = gpgme_strerror(err)
-            raise Crypt::GPGME::Error, "gpgme_op_keylist_next failed: #{errstr}"
-          end
-
+          break if err != GPG_ERR_NO_ERROR
           arr << key
-          key = Key.new(key[:next])
+          gpgme_key_unref(key)
         end
 
         err = gpgme_op_keylist_end(@ctx.pointer)
