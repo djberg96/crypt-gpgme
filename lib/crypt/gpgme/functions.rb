@@ -20,9 +20,9 @@ module Crypt
       attach_function :gpgme_get_keylist_mode, [:pointer], :uint
       attach_function :gpgme_get_offline, [Structs::Context], :bool
       attach_function :gpgme_get_pinentry_mode, [Structs::Context], :uint
-      attach_function :gpgme_get_protocol, [:pointer], :uint
+      attach_function :gpgme_get_protocol, [Structs::Context], :uint
       attach_function :gpgme_get_protocol_name, [:uint], :string
-      attach_function :gpgme_get_textmode, [:pointer], :bool
+      attach_function :gpgme_get_textmode, [Structs::Context], :bool
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_new, [Structs::Context], :uint
       attach_function :gpgme_op_keylist_start, [:pointer, :string, :int], :uint
@@ -43,8 +43,8 @@ module Crypt
       attach_function :gpgme_set_locale, [:pointer, :int, :string], :uint
       attach_function :gpgme_set_offline, [Structs::Context, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [Structs::Context, :uint], :uint
-      attach_function :gpgme_set_protocol, [:pointer, :uint], :uint
-      attach_function :gpgme_set_textmode, [:pointer, :bool], :void
+      attach_function :gpgme_set_protocol, [Structs::Context, :uint], :uint
+      attach_function :gpgme_set_textmode, [Structs::Context, :bool], :void
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
       attach_function :gpgme_strsource, [:uint], :string
