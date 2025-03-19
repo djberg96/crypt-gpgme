@@ -16,8 +16,8 @@ module Crypt
       attach_function :gpgme_get_engine_info, [Structs::EngineInfo], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
       attach_function :gpgme_get_key, [Structs::Context, :string, :pointer, :int], :uint
-      attach_function :gpgme_get_include_certs, [:pointer], :int
-      attach_function :gpgme_get_keylist_mode, [:pointer], :uint
+      attach_function :gpgme_get_include_certs, [Structs::Context], :int
+      attach_function :gpgme_get_keylist_mode, [Structs::Context], :uint
       attach_function :gpgme_get_offline, [Structs::Context], :bool
       attach_function :gpgme_get_pinentry_mode, [Structs::Context], :uint
       attach_function :gpgme_get_protocol, [Structs::Context], :uint
@@ -33,13 +33,13 @@ module Crypt
       attach_function :gpgme_op_keylist_result, [Structs::Context], :uint
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
-      attach_function :gpgme_release, [:pointer], :void
-      attach_function :gpgme_set_armor, [:pointer, :bool], :void
+      attach_function :gpgme_release, [Structs::Context], :void
+      attach_function :gpgme_set_armor, [Structs::Context, :bool], :void
       attach_function :gpgme_set_ctx_flag, [Structs::Context, :string, :string], :uint
       attach_function :gpgme_set_engine_info, [:uint, :string, :string], :int
       attach_function :gpgme_set_global_flag, [:string, :string], :int
-      attach_function :gpgme_set_include_certs, [:pointer, :int], :void
-      attach_function :gpgme_set_keylist_mode, [:pointer, :int], :uint
+      attach_function :gpgme_set_include_certs, [Structs::Context, :int], :void
+      attach_function :gpgme_set_keylist_mode, [Structs::Context, :int], :uint
       attach_function :gpgme_set_locale, [Structs::Context, :int, :string], :uint
       attach_function :gpgme_set_offline, [Structs::Context, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [Structs::Context, :uint], :uint
