@@ -9,7 +9,7 @@ module Crypt
       include Crypt::GPGME::Functions
 
       def initialize
-        @ctx = Crypt::GPGME::Structs::Context.new
+        @ctx = Structs::Context.new
         gpgme_check_version(nil)
         err = gpgme_new(@ctx)
 
@@ -22,19 +22,19 @@ module Crypt
       end
 
       def armor=(bool)
-        gpgme_set_armor(@ctx, bool)
+        gpgme_set_armor(@ctx.pointer, bool)
       end
 
       def armor?
-        gpgme_get_armor(@ctx)
+        gpgme_get_armor(@ctx.pointer)
       end
 
       def get_flag(name)
-        gpgme_get_ctx_flag(@ctx, name)
+        gpgme_get_ctx_flag(@ctx.pointer, name)
       end
 
       def set_flag(name, value)
-        err = gpme_set_ctx_flg(@ctx, name, value)
+        err = gpme_set_ctx_flg(@ctx.pointer, name, value)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -45,7 +45,7 @@ module Crypt
       end
 
       def get_engine_info
-        ptr = gpgme_ctx_get_engine_info(@ctx)
+        ptr = gpgme_ctx_get_engine_info(@ctx.pointer)
         info = Crypt::GPGME::Structs::EngineInfo.new(ptr)
 
         arr = []
@@ -60,30 +60,30 @@ module Crypt
             :req_version => info[:req_version]
           } if info[:version]
 
-          info = EngineInfo.new(info[:next])
+          info = Structs::EngineInfo.new(info[:next])
         end
 
         arr
       end
 
       def set_engine_info(proto, file_name, home_dir)
-        gpgme_ctx_set_engine_info(@ctx, proto, file_name, home_dir)
+        gpgme_ctx_set_engine_info(@ctx.pointer, proto, file_name, home_dir)
       end
 
       def include_certs
-        gpgme_get_include_certs(@ctx)
+        gpgme_get_include_certs(@ctx.pointer)
       end
 
       def include_certs=(num)
-        gpgme_set_include_certs(@ctx, num)
+        gpgme_set_include_certs(@ctx.pointer, num)
       end
 
       def keylist_mode
-        gpgme_get_keylist_mode(@ctx)
+        gpgme_get_keylist_mode(@ctx.pointer)
       end
 
       def keylist_mode=(mode)
-        err = gpgme_set_keylist_mode(@ctx, mode)
+        err = gpgme_set_keylist_mode(@ctx.pointer, mode)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -94,7 +94,7 @@ module Crypt
       end
 
       def set_locale(category, value)
-        err = gpgme_set_locale(@ctx, category, value)
+        err = gpgme_set_locale(@ctx.pointer, category, value)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -105,11 +105,11 @@ module Crypt
       end
 
       def protocol
-        gpgme_get_protocol(@ctx)
+        gpgme_get_protocol(@ctx.pointer)
       end
 
       def protocol=(proto)
-        err = gpgme_set_protocol(@ctx, proto)
+        err = gpgme_set_protocol(@ctx.pointer, proto)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -118,35 +118,35 @@ module Crypt
       end
 
       def offline?
-        gpgme_get_offline(@ctx)
+        gpgme_get_offline(@ctx.pointer)
       end
 
       def offline=(bool)
-        gpgme_set_offline(@ctx, bool)
+        gpgme_set_offline(@ctx.pointer, bool)
       end
 
       def pinentry_mode
-        gpgme_get_pinentry_mode(@ctx)
+        gpgme_get_pinentry_mode(@ctx.pointer)
       end
 
       def pinentry_mode=(mode)
-        gpgme_set_pinentry_mode(@ctx, mode)
+        gpgme_set_pinentry_mode(@ctx.pointer, mode)
       end
 
       def text_mode?
-        gpgme_get_textmode(@ctx)
+        gpgme_get_textmode(@ctx.pointer)
       end
 
       def text_mode=(bool)
-        gpgme_set_textmode(@ctx, bool)
+        gpgme_set_textmode(@ctx.pointer, bool)
       end
 
       def release
-        gpgme_release(@ctx)
+        gpgme_release(@ctx.pointer) if !@ctx.pointer.null?
       end
 
       def list_keys(pattern = nil, secret = 0)
-        err = gpgme_op_keylist_start(@ctx, pattern, secret)
+        err = gpgme_op_keylist_start(@ctx.pointer, pattern, secret)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -157,7 +157,7 @@ module Crypt
         key = Crypt::GPGME::Structs::Key.new(ptr)
 
         loop do
-          err = gpgme_op_keylist_next(@ctx, key)
+          err = gpgme_op_keylist_next(@ctx.pointer, key)
 
           break if err == GPG_ERR_EOF
 
@@ -170,7 +170,7 @@ module Crypt
           key = Key.new(key[:next])
         end
 
-        err = gpgme_op_keylist_end(@ctx)
+        err = gpgme_op_keylist_end(@ctx.pointer)
 
         if err != GPG_ERR_EOF && err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
