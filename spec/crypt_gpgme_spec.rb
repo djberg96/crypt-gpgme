@@ -56,6 +56,10 @@ RSpec.describe Crypt::GPGME do
   context Crypt::GPGME::Context do
     subject{ described_class.new }
 
+    after do
+      subject.release
+    end
+
     example 'armor? basic functionality' do
       expect(subject).to respond_to(:armor?)
       expect(subject.armor?).to be_boolean
