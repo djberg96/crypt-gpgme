@@ -30,6 +30,46 @@ module Crypt
         end
       end
 
+      # gpgme_revocation_key_t
+      class RevocationKey < FFI::Struct
+        layout(
+          :next, :pointer,
+          :pubkey_algo, :int,
+          :fpr, :string,
+          :key_class, :uint,
+          :sensitive, :uint
+        )
+      end
+
+      # gpgme_key_sig_t
+      class KeySig < FFI::Struct
+        layout(
+          :next, :pointer,
+          :revoked, :bool, 9,
+          :expired, :bool, 10,
+          :invalid, :bool, 11,
+          :exportable, :bool, 12,
+          :_unused, :uint, 13,
+          :trust_depth, :uint, 14,
+          :trust_value, :uint, 15,
+          :pubkey_algo, :uint, 16,
+          :keyid, :string,
+          :_keyid, [:char, 17],
+          :timestamp, :long,
+          :expires, :long,
+          :status, :uint,
+          :_obsolete_class, :uint,
+          :uid, :string,
+          :name, :string,
+          :email, :string,
+          :comment, :string,
+          :sig_class, :uint,
+          :notation, :uint,
+          :_last_notation, :pointer,
+          :trust_scope, :string
+        )
+      end
+
       # gpgme_engine_info_t
       class EngineInfo < FFI::Struct
         layout(
@@ -149,46 +189,6 @@ module Crypt
           :encrfirst, :ulong, 32,
           :encrlast, :ulong, 40,
           :description, :string, 48
-        )
-      end
-
-      # gpgme_key_sig_t
-      class KeySig < FFI::Struct
-        layout(
-          :next, :pointer,
-          :revoked, :bool, 9,
-          :expired, :bool, 10,
-          :invalid, :bool, 11,
-          :exportable, :bool, 12,
-          :_unused, :uint, 13,
-          :trust_depth, :uint, 14,
-          :trust_value, :uint, 15,
-          :pubkey_algo, :uint, 16,
-          :keyid, :string,
-          :_keyid, [:char, 17],
-          :timestamp, :long,
-          :expires, :long,
-          :status, :uint,
-          :_obsolete_class, :uint,
-          :uid, :string,
-          :name, :string,
-          :email, :string,
-          :comment, :string,
-          :sig_class, :uint,
-          :notation, :uint,
-          :_last_notation, :pointer,
-          :trust_scope, :string
-        )
-      end
-
-      # gpgme_revocation_key_t
-      class RevocationKey < FFI::Struct
-        layout(
-          :next, :pointer,
-          :pubkey_algo, :int,
-          :fpr, :string,
-          :key_class, :uint,
-          :sensitive, :uint
         )
       end
     end
