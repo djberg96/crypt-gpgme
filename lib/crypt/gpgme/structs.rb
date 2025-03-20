@@ -127,7 +127,7 @@ module Crypt
           :uids, :pointer,
           :_last_subkey, :pointer,
           :_last_uid, :pointer,
-          :keylist_mode, :pointer,
+          :keylist_mode, :uint,
           :fpr, :string,
           :last_update, :ulong,
           :revocation_keys, :pointer,
