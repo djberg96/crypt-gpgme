@@ -122,7 +122,7 @@ module Crypt
           :issuer_serial, :string,
           :issuer_name, :string,
           :chain_id, :string,
-          :owner_trust, :pointer,
+          :owner_trust, :uint,
           :subkeys, :pointer,
           :uids, :pointer,
           :_last_subkey, :pointer,
