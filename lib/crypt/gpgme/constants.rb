@@ -5,8 +5,6 @@ module Crypt
     module Constants
       extend FFI::Library
 
-      typedef :uint, :gpgme_error_t
-
       GPG_ERR_NO_ERROR = 0
       GPG_ERR_GENERAL = 1
       GPG_ERR_UNKNOWN_PACKET = 2
@@ -593,8 +591,6 @@ module Crypt
       GPG_ERR_EXFULL = GPG_ERR_SYSTEM_ERROR | 140
       GPG_ERR_CODE_DIM = 65536
 
-      typedef :uint, :gpg_err_source_t
-
       GPG_ERR_SOURCE_UNKNOWN = 0
       GPG_ERR_SOURCE_GCRYPT = 1
       GPG_ERR_SOURCE_GPG = 2
@@ -621,8 +617,6 @@ module Crypt
       GPG_ERR_SOURCE_USER_4 = 35
       GPG_ERR_SOURCE_DIM = 128
 
-      typedef :uint, :gpgme_protocol_t
-
       GPGME_PROTOCOL_OpenPGP = 0
       GPGME_PROTOCOL_OPENPGP = 0
       GPGME_PROTOCOL_CMS     = 1
@@ -634,15 +628,11 @@ module Crypt
       GPGME_PROTOCOL_DEFAULT = 254
       GPGME_PROTOCOL_UNKNOWN = 255
 
-      typedef :uint, :gpgme_conf_level_t
-
       GPGME_CONF_BASIC = 0
       GPGME_CONF_ADVANCED = 1
       GPGME_CONF_EXPERT = 2
       GPGME_CONF_INVISIBLE = 3
       GPGME_CONF_INTERNAL = 4
-
-      typedef :uint, :gpgme_pubkey_algo_t
 
       GPGME_PK_RSA   = 1
       GPGME_PK_RSA_E = 2
@@ -655,8 +645,6 @@ module Crypt
       GPGME_PK_ECDSA = 301
       GPGME_PK_ECDH  = 302
       GPGME_PK_EDDSA = 303
-
-      typedef :uint, :gpgme_hash_algo_t
 
       GPGME_MD_NONE          = 0
       GPGME_MD_MD5           = 1
@@ -674,15 +662,11 @@ module Crypt
       GPGME_MD_CRC32_RFC1510 = 303
       GPGME_MD_CRC24_RFC2440 = 304
 
-      typedef :uint, :gpgme_pinentry_mode_t
-
       GPGME_PINENTRY_MODE_DEFAULT  = 0,
       GPGME_PINENTRY_MODE_ASK      = 1,
       GPGME_PINENTRY_MODE_CANCEL   = 2,
       GPGME_PINENTRY_MODE_ERROR    = 3,
       GPGME_PINENTRY_MODE_LOOPBACK = 4
-
-      typedef :uint, :gpgme_keylist_mode_t
 
       GPGME_KEYLIST_MODE_LOCAL           = 1
       GPGME_KEYLIST_MODE_EXTERN          = 2
@@ -698,8 +682,6 @@ module Crypt
       GPGME_KEYLIST_MODE_LOCATE          = (1|2)
       GPGME_KEYLIST_MODE_LOCATE_EXTERNAL = (1|2|512)
 
-      typedef :uint, :gpgme_validity_t
-
       GPGME_VALIDITY_UNKNOWN   = 0
       GPGME_VALIDITY_UNDEFINED = 1
       GPGME_VALIDITY_NEVER     = 2
@@ -707,16 +689,12 @@ module Crypt
       GPGME_VALIDITY_FULL      = 4
       GPGME_VALIDITY_ULTIMATE  = 5
 
-      typedef :uint, :gpgme_tofu_policy_t
-
       GPGME_TOFU_POLICY_NONE    = 0
       GPGME_TOFU_POLICY_AUTO    = 1
       GPGME_TOFU_POLICY_GOOD    = 2
       GPGME_TOFU_POLICY_UNKNOWN = 3
       GPGME_TOFU_POLICY_BAD     = 4
       GPGME_TOFU_POLICY_ASK     = 5
-
-      typedef :uint, :gpgme_keyorg_t
 
       GPGME_KEYORG_UNKNOWN = 0
       GPGME_KEYORG_KS      = 1
@@ -726,8 +704,6 @@ module Crypt
       GPGME_KEYORG_FILE    = 6
       GPGME_KEYORG_SELF    = 7
       GPGME_KEYORG_OTHER   = 31
-
-      typedef :uint, :gpgme_sigsum_t
 
       GPGME_SIGSUM_VALID         = 0x0001
       GPGME_SIGSUM_GREEN         = 0x0002
