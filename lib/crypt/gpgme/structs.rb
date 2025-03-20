@@ -41,6 +41,20 @@ module Crypt
         )
       end
 
+      class SigNotation < FFI::Struct
+        layout(
+          :next, :pointer,
+          :name, :string,
+          :value, :string,
+          :name_len, :int,
+          :value_len, :int,
+          :flags, :uint,
+          :human_readable, :bool, 33,
+          :critical, :bool, 34,
+          :_unused, :int
+        )
+      end
+
       # gpgme_key_sig_t
       class KeySig < FFI::Struct
         layout(

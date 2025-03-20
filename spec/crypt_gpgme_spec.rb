@@ -109,5 +109,9 @@ RSpec.describe Crypt::GPGME do
     example 'tofuinfo is the expected size' do
       expect(Crypt::GPGME::Structs::TofuInfo.size).to eq(dummy.check_sizeof('struct _gpgme_tofu_info', header, path))
     end
+
+    example 'signotation is the expected size' do
+      expect(Crypt::GPGME::Structs::SigNotation.size).to eq(dummy.check_sizeof('struct _gpgme_sig_notation', header, path))
+    end
   end
 end
