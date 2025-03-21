@@ -32,7 +32,7 @@ module Crypt
       attach_function :gpgme_op_keylist_ext_start, [Structs::Context, :pointer, :int, :int], :uint
       attach_function :gpgme_op_keylist_from_data_start, [Structs::Context, :pointer, :int], :uint
       attach_function :gpgme_op_keylist_next, [Structs::Context, :pointer], :uint
-      attach_function :gpgme_op_keylist_result, [Structs::Context], :uint
+      attach_function :gpgme_op_keylist_result, [Structs::Context], Structs::KeylistResult.by_value
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_release, [Structs::Context], :void

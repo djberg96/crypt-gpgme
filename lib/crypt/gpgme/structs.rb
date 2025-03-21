@@ -30,6 +30,14 @@ module Crypt
         end
       end
 
+      # gpgme_op_keylist_result_t
+      class KeylistResult < FFI::Struct
+        layout(
+          :truncated, :uint, 1,
+          :_unused, :uint, 31
+        )
+      end
+
       # gpgme_revocation_key_t
       class RevocationKey < FFI::Struct
         layout(
