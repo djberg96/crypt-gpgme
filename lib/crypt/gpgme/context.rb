@@ -66,6 +66,18 @@ module Crypt
         arr
       end
 
+      def get_key(fingerprint, secret = true)
+        key = Crypt::GPGME::Structs::Key.new
+        err = gpgme_get_key(@ctx.pointer, fingerprint, key, secret)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_ctx_flag failed: #{errstr}"
+        end
+
+        key
+      end
+
       def set_engine_info(proto, file_name, home_dir)
         gpgme_ctx_set_engine_info(@ctx.pointer, proto, file_name, home_dir)
       end
