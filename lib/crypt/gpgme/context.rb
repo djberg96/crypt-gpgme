@@ -72,7 +72,7 @@ module Crypt
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
-          raise Crypt::GPGME::Error, "gpgme_set_ctx_flag failed: #{errstr}"
+          raise Crypt::GPGME::Error, "gpgme_get_key failed: #{errstr}"
         end
 
         key
