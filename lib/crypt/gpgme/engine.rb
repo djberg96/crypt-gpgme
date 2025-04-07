@@ -66,6 +66,12 @@ module Crypt
         # You can make these changes the default or set them for some
         # contexts individually.
         #
+        # NOTE: In practice you will typically want to set this at the
+        # context level to avoid contaminating the global GPG status if
+        # there are several GPG processes running simultaneously.
+        #
+        # See Context#set_engine_info.
+        #
         def set_info(protocol, file_name, home_dir)
           rv = gpgme_set_engine_info(protocol, file_name, home_dir)
           raise SystemCallError.new('gpgme_set_engine_info', rv) if rv != GPG_ERR_NO_ERROR
