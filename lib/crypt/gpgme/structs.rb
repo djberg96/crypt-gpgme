@@ -96,7 +96,7 @@ module Crypt
           :expired, 1,
           :invalid, 1,
           :exportable, 1,
-          :_unused, 12
+          :_unused, 12,
           :trust_depth, 8,
           :trust_value, 8
         )
