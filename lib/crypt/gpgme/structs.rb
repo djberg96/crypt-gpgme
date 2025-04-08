@@ -1,4 +1,5 @@
 require 'ffi'
+require 'ffi/bit_struct'
 require_relative 'constants'
 
 module Crypt
@@ -31,25 +32,26 @@ module Crypt
       end
 
       # gpgme_op_keylist_result_t
-      class KeylistResult < FFI::Struct
-        layout(
-          :truncated, :uint, 1,
-          :_unused, :uint, 31
-        )
+      class KeylistResult < FFI::BitStruct
+        layout(:properties, :uint)
+        bit_fields(:properties, :truncated, 1, :_unused, 31)
       end
 
       # gpgme_revocation_key_t
-      class RevocationKey < FFI::Struct
+      class RevocationKey < FFI::BitStruct
         layout(
           :next, :pointer,
           :pubkey_algo, :int,
           :fpr, :string,
           :key_class, :uint,
-          :sensitive, :uint
+          :properties, :uint # bit fields
         )
+
+        bit_fields(:properties, :sensitive, 1)
       end
 
-      class SigNotation < FFI::Struct
+      # struct _gpgme_sig_notation
+      class SigNotation < FFI::BitStruct
         layout(
           :next, :pointer,
           :name, :string,
@@ -57,24 +59,24 @@ module Crypt
           :name_len, :int,
           :value_len, :int,
           :flags, :uint,
-          :human_readable, :bool, 33,
-          :critical, :bool, 34,
-          :_unused, :int
+          :properties, :uint # bit fields
+        )
+
+        bit_fields(:properties,
+          :human_readable, 1,
+          :critical, 1,
+          :_unused, 30
         )
       end
 
       # gpgme_key_sig_t
-      class KeySig < FFI::Struct
+      class KeySig < FFI::BitStruct
         layout(
           :next, :pointer,
-          :revoked, :bool, 9,
-          :expired, :bool, 10,
-          :invalid, :bool, 11,
-          :exportable, :bool, 12,
-          :_unused, :uint, 13,
-          :trust_depth, :uint, 14,
-          :trust_value, :uint, 15,
-          :pubkey_algo, :uint, 16,
+          :properties, :uint,
+          :trust_depth, :uint,
+          :trust_value, :uint,
+          :pubkey_algo, :uint,
           :keyid, :string,
           :_keyid, [:char, 17],
           :timestamp, :long,
@@ -89,6 +91,14 @@ module Crypt
           :notation, :uint,
           :_last_notation, :pointer,
           :trust_scope, :string
+        )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :expired, 1,
+          :invalid, 1,
+          :exportable, 1,
+          :_unused, 12
         )
       end
 
@@ -105,27 +115,11 @@ module Crypt
       end
 
       # gpgme_subkey_t
-      class Subkey < FFI::Struct
+      class Subkey < FFI::BitStruct
         layout(
           :next, :pointer,
-          :revoked, :bool, 9,
-          :expired, :bool, 9,
-          :disabled, :bool, 9,
-          :invalid, :bool, 9,
-          :can_encrypt, :bool, 9,
-          :can_sign, :bool, 9,
-          :can_certify, :bool, 9,
-          :secret, :bool, 9,
-          :can_authenticate, :bool, 10,
-          :is_qualified, :bool, 10,
-          :is_cardkey, :bool, 10,
-          :is_de_vs, :bool, 10,
-          :can_renc, :bool, 10,
-          :can_timestamp, :bool, 10,
-          :is_group_owned, :bool, 10,
-          :beta_compliance, :bool, 10,
-          :unused, :uint, 11,
-          :pubkey_algo, :uint, 12,
+          :properties, :uint, # bit fields
+          :pubkey_algo, :uint,
           :length, :int,
           :keyid, :string,
           :_keyid, [:char, 17],
@@ -137,16 +131,33 @@ module Crypt
           :keygrip, :string,
           :v5fpr, :string
         )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :expired, 1,
+          :disabled, 1,
+          :invalid, 1,
+          :can_encrypt, 1,
+          :can_sign, 1,
+          :can_certify, 1,
+          :secret, 1,
+          :can_authenticate, 1,
+          :is_qualified, 1,
+          :is_cardkey, 1,
+          :is_de_vs, 1,
+          :can_renc, 1,
+          :can_timestamp, 1,
+          :is_group_owned, 1,
+          :beta_compliance, 1,
+          :unused, 16
+        )
       end
 
       # gpgme_user_id_t
-      class UserId < FFI::Struct
+      class UserId < FFI::BitStruct
         layout(
           :next, :pointer,
-          :revoked, :bool,
-          :invalid, :bool,
-          :_unused, :uint,
-          :origin, :uint,
+          :properties, :uint, # bit fields
           :validity, :uint,
           :uid, :string,
           :name, :string,
@@ -158,29 +169,21 @@ module Crypt
           :last_update, :ulong,
           :uidhash, :string
         )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :invalid, 1,
+          :_unused, 25,
+          :origin, 5
+        )
       end
 
       # gpgme_key_t
-      class Key < FFI::Struct
+      class Key < FFI::BitStruct
         layout(
           :_refs, :uint,
-          :revoked, :bool, 4,
-          :expired, :bool, 4,
-          :disabled, :bool, 4,
-          :invalid, :bool, 4,
-          :can_encrypt, :bool, 5,
-          :can_sign, :bool, 5,
-          :can_certify, :bool, 5,
-          :secret, :bool, 5,
-          :can_authenticate, :bool, 6,
-          :is_qualified, :bool, 6,
-          :has_encrypt, :bool, 6,
-          :has_sign, :bool, 6,
-          :has_certify, :bool, 7,
-          :has_authenticate, :bool, 7,
-          :_unused, :uint, 7,
-          :origin, :int, 7,
-          :protocol, :uint, 8,
+          :properties, :uint, # bit fields
+          :protocol, :uint,
           :issuer_serial, :string,
           :issuer_name, :string,
           :chain_id, :string,
@@ -195,22 +198,45 @@ module Crypt
           :revocation_keys, :pointer,
           :_last_revkey, :pointer
         )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :expired, 1,
+          :disabled, 1,
+          :invalid, 1,
+          :can_encrypt, 1,
+          :can_sign, 1,
+          :can_certify, 1,
+          :secret, 1,
+          :can_authenticate, 1,
+          :is_qualified, 1,
+          :has_encrypt, 1,
+          :has_sign, 1,
+          :has_certify, 1,
+          :has_authenticate, 1,
+          :_unused, 13,
+          :origin, 5
+        )
       end
 
       # gpgme_tofu_info_t
-      class TofuInfo < FFI::Struct
+      class TofuInfo < FFI::BitStruct
         layout(
           :next, :pointer,
-          :validity, :uint, 9,
-          :policy, :uint, 10,
-          :_rfu, :uint, 11,
-          :signcount, :ushort, 12,
-          :encrcount, :ushort, 14,
-          :signfirst, :ulong, 16,
-          :signlast, :ulong, 24,
-          :encrfirst, :ulong, 32,
-          :encrlast, :ulong, 40,
-          :description, :string, 48
+          :properties, :uint, # bit fields
+          :signcount, :ushort,
+          :encrcount, :ushort,
+          :signfirst, :ulong,
+          :signlast, :ulong,
+          :encrfirst, :ulong,
+          :encrlast, :ulong,
+          :description, :string,
+        )
+
+        bit_fields(:properties,
+          :validity, 3,
+          :policy, 4,
+          :_rfu, 25
         )
       end
     end
