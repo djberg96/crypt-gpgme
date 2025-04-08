@@ -165,6 +165,7 @@ module Crypt
           :comment, :string,
           :signatures, :pointer,
           :_last_keysig, :pointer,
+          :address, :string,
           :tofu, :uint,
           :last_update, :ulong,
           :uidhash, :string
