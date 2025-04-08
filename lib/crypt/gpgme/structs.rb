@@ -86,7 +86,7 @@ module Crypt
           :email, :string,
           :comment, :string,
           :sig_class, :uint,
-          :notation, :uint,
+          :notations, :pointer,
           :_last_notation, :pointer,
           :trust_scope, :string
         )
