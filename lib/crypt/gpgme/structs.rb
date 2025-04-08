@@ -74,9 +74,7 @@ module Crypt
         layout(
           :next, :pointer,
           :properties, :uint,
-          :trust_depth, :uint,
-          :trust_value, :uint,
-          :pubkey_algo, :uint,
+          :pubkey_algo, :uint, 12,
           :keyid, :string,
           :_keyid, [:char, 17],
           :timestamp, :long,
@@ -99,6 +97,8 @@ module Crypt
           :invalid, 1,
           :exportable, 1,
           :_unused, 12
+          :trust_depth, 8,
+          :trust_value, 8
         )
       end
 
@@ -119,7 +119,7 @@ module Crypt
         layout(
           :next, :pointer,
           :properties, :uint, # bit fields
-          :pubkey_algo, :uint,
+          :pubkey_algo, :uint, 12,
           :length, :int,
           :keyid, :string,
           :_keyid, [:char, 17],
@@ -158,7 +158,7 @@ module Crypt
         layout(
           :next, :pointer,
           :properties, :uint, # bit fields
-          :validity, :uint,
+          :validity, :uint, 12,
           :uid, :string,
           :name, :string,
           :email, :string,
@@ -183,7 +183,7 @@ module Crypt
         layout(
           :_refs, :uint,
           :properties, :uint, # bit fields
-          :protocol, :uint,
+          :protocol, :uint, 8,
           :issuer_serial, :string,
           :issuer_name, :string,
           :chain_id, :string,
