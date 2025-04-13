@@ -220,12 +220,12 @@ module Crypt
           :origin, 5
         )
 
-        def revoked?
-          self[:revoked] == 1 ? true : false
-        end
-
-        def expired?
-          self[:expired] == 1 ? true : false
+        bit_field_members.values.last.each do |member|
+          unless member.to_s.start_with?('_')
+            define_method "#{member}?" do
+              self[member] == 1 ? true : false
+            end
+          end
         end
       end
 
