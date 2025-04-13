@@ -12,7 +12,14 @@ module Crypt
         def to_hash
           hash = {}
 
-          members.each do |member|
+          member_list = members
+
+          if self.class.respond_to?(:bit_field_members)
+            member_list << self.class.bit_field_members.values.flatten
+            member_list.delete_if{ |m| self.class.bit_field_members.keys.include?(m) }
+          end
+
+          member_list.flatten.each do |member|
             next if member.to_s.start_with?('_')
             hash[member] = self[member]
           end
