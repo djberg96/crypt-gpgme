@@ -16,7 +16,7 @@ module Crypt
       attach_function :gpgme_get_engine_info, [Structs::EngineInfo], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
       attach_function :gpgme_get_include_certs, [Structs::Context], :int
-      attach_function :gpgme_get_key, [Structs::Context, :string, Structs::Key.by_ref, :bool], :uint
+      attach_function :gpgme_get_key, [Structs::Context, :string, :pointer, :bool], :uint
       attach_function :gpgme_get_keylist_mode, [Structs::Context], :uint
       attach_function :gpgme_get_offline, [Structs::Context], :bool
       attach_function :gpgme_get_pinentry_mode, [Structs::Context], :uint
