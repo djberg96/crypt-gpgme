@@ -184,7 +184,7 @@ module Crypt
       class Key < FFI::BitStruct
         layout(
           :_refs, :uint,
-          :properties, :uint, # bit fields
+          :_properties, :uint, # bit fields
           :protocol, :uint,
           :issuer_serial, :string,
           :issuer_name, :string,
@@ -201,7 +201,7 @@ module Crypt
           :_last_revkey, :pointer
         )
 
-        bit_fields(:properties,
+        bit_fields(:_properties,
           :revoked, 1,
           :expired, 1,
           :disabled, 1,
