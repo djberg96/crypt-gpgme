@@ -11,15 +11,9 @@ module Crypt
       class FFI::Struct
         def to_hash
           hash = {}
+          bitfields = respond_to?(:bit_field_members) ? bit_field_members : {}
 
-          member_list = members
-
-          if self.class.respond_to?(:bit_field_members)
-            member_list << self.class.bit_field_members.values.flatten
-            member_list.delete_if{ |m| self.class.bit_field_members.keys.include?(m) }
-          end
-
-          member_list.flatten.each do |member|
+          members.flat_map { |m| bitfields[m] || m }.each do |member|
             next if member.to_s.start_with?('_')
             hash[member] = self[member]
           end
@@ -225,6 +219,14 @@ module Crypt
           :_unused, 13,
           :origin, 5
         )
+
+        def revoked?
+          self[:revoked] == 1 ? true : false
+        end
+
+        def expired?
+          self[:expired] == 1 ? true : false
+        end
       end
 
       # gpgme_tofu_info_t
