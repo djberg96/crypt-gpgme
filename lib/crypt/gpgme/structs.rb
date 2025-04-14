@@ -232,10 +232,9 @@ module Crypt
         def to_hash
           hash = super
 
-          uid_pointer = self[:uids]
           uid_array = []
 
-          uid = Crypt::GPGME::Structs::UserId.new(uid_pointer)
+          uid = Crypt::GPGME::Structs::UserId.new(self[:uids])
 
           unless uid.null?
             uid_array << uid
