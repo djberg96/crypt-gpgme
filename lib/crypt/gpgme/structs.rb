@@ -235,12 +235,19 @@ module Crypt
           uid_pointer = self[:uids]
           uid_array = []
 
-          while !uid_pointer.null?
-            uid_array << Crypt::GPGME::Structs::UserId.new(uid_pointer)
-            uid_pointer = uid_pointer.read_pointer
+          uid = Crypt::GPGME::Structs::UserId.new(uid_pointer)
+
+          unless uid.null?
+            uid_array << uid
+            loop do
+              break if uid[:next].null?
+              uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
+              break if uid.null?
+              uid_array << uid
+            end
+            hash[:uids] = uid_array.map(&:to_hash)
           end
 
-          hash[:uids] = uid_array.map(&:to_hash)
           hash
         end
       end
