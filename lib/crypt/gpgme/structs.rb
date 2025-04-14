@@ -227,6 +227,21 @@ module Crypt
             end
           end
         end
+
+        def to_hash
+          hash = super
+
+          uid_pointer = self[:uids]
+          uid_array = []
+
+          while !uid_pointer.null?
+            uid_array << Crypt::GPGME::Structs::UserId.new(uid_pointer)
+            uid_pointer = uid_pointer.read_pointer
+          end
+
+          hash[:uids] = uid_array.map(&:to_hash)
+          hash
+        end
       end
 
       # gpgme_tofu_info_t
