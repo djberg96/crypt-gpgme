@@ -246,6 +246,10 @@ module Crypt
 
           hash
         end
+
+        def fingerprint
+          self[:fpr]
+        end
       end
 
       # gpgme_tofu_info_t
