@@ -250,6 +250,10 @@ module Crypt
         def fingerprint
           self[:fpr]
         end
+
+        def last_update
+          self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
+        end
       end
 
       # gpgme_tofu_info_t
