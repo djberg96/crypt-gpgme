@@ -192,7 +192,7 @@ module Crypt
           :chain_id, :string,
           :owner_trust, :uint,
           :subkeys, :pointer,
-          :uids, :pointer,
+          :uids, UserId.by_ref,
           :_last_subkey, :pointer,
           :_last_uid, :pointer,
           :keylist_mode, :uint,
@@ -231,21 +231,18 @@ module Crypt
 
         def to_hash
           hash = super
-
           uid_array = []
 
-          uid = Crypt::GPGME::Structs::UserId.new(self[:uids])
+          uid = self[:uids]
+          uid_array << uid
 
-          unless uid.null?
+          loop do
+            uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
+            break if uid.null?
             uid_array << uid
-            loop do
-              break if uid[:next].null?
-              uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
-              break if uid.null?
-              uid_array << uid
-            end
-            hash[:uids] = uid_array.map(&:to_hash)
           end
+
+          hash[:uids] = uid_array.map(&:to_hash)
 
           hash
         end
