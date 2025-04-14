@@ -14,7 +14,8 @@ module Crypt
           bitfields = respond_to?(:bit_field_members) ? bit_field_members : {}
 
           members.flat_map { |m| bitfields[m] || m }.each do |member|
-            next if member.to_s.start_with?('_')
+            next if member.to_s.start_with?('_') # Skip unused members
+            next if member.to_s == 'next'        # Skip linked list pointers
             hash[member] = self[member]
           end
 
