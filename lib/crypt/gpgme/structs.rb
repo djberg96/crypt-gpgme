@@ -192,7 +192,7 @@ module Crypt
           :issuer_name, :string,
           :chain_id, :string,
           :owner_trust, :uint,
-          :subkeys, :pointer,
+          :subkeys, Subkey.by_ref,
           :uids, UserId.by_ref,
           :_last_subkey, :pointer,
           :_last_uid, :pointer,
@@ -233,9 +233,13 @@ module Crypt
         def to_hash
           hash = super
           uid_array = []
+          subkey_array = []
 
           uid = self[:uids]
+          subkey = self[:subkeys]
+
           uid_array << uid
+          subkey_array << subkey
 
           loop do
             uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
@@ -243,7 +247,14 @@ module Crypt
             uid_array << uid
           end
 
+          loop do
+            subkey = Crypt::GPGME::Structs::Subkey.new(subkey[:next])
+            break if subkey.null?
+            subkey_array << subkey
+          end
+
           hash[:uids] = uid_array.map(&:to_hash)
+          hash[:subkeys] = subkey_array.map(&:to_hash)
 
           hash
         end
@@ -254,6 +265,10 @@ module Crypt
 
         def last_update
           self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
+        end
+
+        def issuer_serial
+          self[:issuer_serial]
         end
 
         def protocol(numeric = false)
