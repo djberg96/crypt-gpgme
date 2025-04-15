@@ -33,6 +33,8 @@ module Crypt
       attach_function :gpgme_op_keylist_from_data_start, [Structs::Context, :pointer, :int], :uint
       attach_function :gpgme_op_keylist_next, [Structs::Context, :pointer], :uint
       attach_function :gpgme_op_keylist_result, [Structs::Context], Structs::KeylistResult.by_value
+      attach_function :gpgme_op_tofu_policy, [Structs::Context, Structs::Key, :uint], :uint
+      attach_function :gpgme_op_tofu_policy_start, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_release, [Structs::Context], :void
@@ -52,6 +54,7 @@ module Crypt
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
       attach_function :gpgme_strsource, [:uint], :string
+      attach_function :gpgme_wait, [Structs::Context, :pointer, :int], Structs::Context
     end
   end
 end
