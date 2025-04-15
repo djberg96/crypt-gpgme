@@ -267,6 +267,14 @@ module Crypt
           self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
         end
 
+        def chain_id
+          self[:chain_id]
+        end
+
+        def issuer_name
+          self[:issuer_name]
+        end
+
         def issuer_serial
           self[:issuer_serial]
         end
