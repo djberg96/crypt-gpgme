@@ -256,6 +256,29 @@ module Crypt
           self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
         end
 
+        def owner_trust(numeric = false)
+          if numeric
+            self[:owner_trust]
+          else
+            case self[:owner_trust]
+              when GPGME_VALIDITY_UNKNOWN
+                'unknown'
+              when GPGME_VALIDITY_UNDEFINED
+                'undefined'
+              when GPGME_VALIDITY_NEVER
+                'never'
+              when GPGME_VALIDITY_MARGINAL
+                'marginal'
+              when GPGME_VALIDITY_FULL
+                'full'
+              when GPGME_VALIDITY_ULTIMATE
+                'ultimate'
+              else
+                'unknown'
+            end
+          end
+        end
+
         def keylist_mode(numeric = false)
           if numeric
             self[:keylist_mode]
