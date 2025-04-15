@@ -6,7 +6,6 @@ module Crypt
   class GPGME
     module Structs
       extend FFI::Library
-      include Crypt::GPGME::Constants
 
       class FFI::Struct
         def to_hash
@@ -183,6 +182,8 @@ module Crypt
 
       # gpgme_key_t
       class Key < FFI::BitStruct
+        include Crypt::GPGME::Constants
+
         layout(
           :_refs, :uint,
           :_properties, :uint, # bit fields
@@ -253,6 +254,43 @@ module Crypt
 
         def last_update
           self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
+        end
+
+        def keylist_mode(numeric = false)
+          if numeric
+            self[:keylist_mode]
+          else
+            case self[:keylist_mode]
+              when GPGME_KEYLIST_MODE_LOCAL
+                'local'
+              when GPGME_KEYLIST_MODE_EXTERN
+                'extern'
+              when GPGME_KEYLIST_MODE_SIGS
+                'sigs'
+              when GPGME_KEYLIST_MODE_SIG_NOTATIONS
+                'signature notations'
+              when GPGME_KEYLIST_MODE_WITH_SECRET
+                'with secret'
+              when GPGME_KEYLIST_MODE_WITH_TOFU
+                'with tofu'
+              when GPGME_KEYLIST_MODE_WITH_KEYGRIP
+                'with keygrip'
+              when GPGME_KEYLIST_MODE_EPHEMERAL
+                'ephemeral'
+              when GPGME_KEYLIST_MODE_VALIDATE
+                'validate'
+              when GPGME_KEYLIST_MODE_FORCE_EXTERN
+                'extern'
+              when GPGME_KEYLIST_MODE_WITH_V5FPR
+                'with v5fpr'
+              when GPGME_KEYLIST_MODE_LOCATE
+                'locate'
+              when GPGME_KEYLIST_MODE_LOCATE_EXTERNAL
+                'locate external'
+              else
+                'unknown'
+            end
+          end
         end
       end
 
