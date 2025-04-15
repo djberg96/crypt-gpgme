@@ -256,6 +256,35 @@ module Crypt
           self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
         end
 
+        def protocol(numeric = false)
+          if numeric
+            self[:protocol]
+          else
+            case self[:protocol]
+              when GPGME_PROTOCOL_OpenPGP
+                'openpgp'
+              when GPGME_PROTOCOL_CMS
+                'cms'
+              when GPGME_PROTOCOL_GPGCONF
+                'gpgconf'
+              when GPGME_PROTOCOL_ASSUAN
+                'assuan'
+              when GPGME_PROTOCOL_G13
+                'g13'
+              when GPGME_PROTOCOL_UISERVER
+                'uiserver'
+              when GPGME_PROTOCOL_SPAWN
+                'spawn'
+              when GPGME_PROTOCOL_DEFAULT
+                'default'
+              when GPGME_PROTOCOL_UNKNOWN
+                'unknown'
+              else
+                'unknown'
+            end
+          end
+        end
+
         def owner_trust(numeric = false)
           if numeric
             self[:owner_trust]
