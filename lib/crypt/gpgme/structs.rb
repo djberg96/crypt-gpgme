@@ -38,6 +38,27 @@ module Crypt
         bit_fields(:properties, :truncated, 1, :_unused, 31)
       end
 
+      # gpgme_tofu_info_t
+      class TofuInfo < FFI::BitStruct
+        layout(
+          :next, :pointer,
+          :_properties, :uint, # bit fields
+          :signcount, :ushort,
+          :encrcount, :ushort,
+          :signfirst, :ulong,
+          :signlast, :ulong,
+          :encrfirst, :ulong,
+          :encrlast, :ulong,
+          :description, :string,
+        )
+
+        bit_fields(:_properties,
+          :validity, 3,
+          :policy, 4,
+          :_rfu, 25
+        )
+      end
+
       # gpgme_revocation_key_t
       class RevocationKey < FFI::BitStruct
         layout(
@@ -167,7 +188,7 @@ module Crypt
           :signatures, :pointer,
           :_last_keysig, :pointer,
           :address, :string,
-          :tofu, :uint,
+          :tofu, TofuInfo.by_ref,
           :last_update, :ulong,
           :uidhash, :string
         )
@@ -367,27 +388,6 @@ module Crypt
             end
           end
         end
-      end
-
-      # gpgme_tofu_info_t
-      class TofuInfo < FFI::BitStruct
-        layout(
-          :next, :pointer,
-          :properties, :uint, # bit fields
-          :signcount, :ushort,
-          :encrcount, :ushort,
-          :signfirst, :ulong,
-          :signlast, :ulong,
-          :encrfirst, :ulong,
-          :encrlast, :ulong,
-          :description, :string,
-        )
-
-        bit_fields(:properties,
-          :validity, 3,
-          :policy, 4,
-          :_rfu, 25
-        )
       end
     end
   end
