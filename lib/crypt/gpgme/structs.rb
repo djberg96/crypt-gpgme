@@ -15,7 +15,12 @@ module Crypt
           members.flat_map { |m| bitfields[m] || m }.each do |member|
             next if member.to_s.start_with?('_') # Skip unused members
             next if member.to_s == 'next'        # Skip linked list pointers
-            hash[member] = self[member]
+
+            if self[member].is_a?(FFI::Pointer) and self[member].null?
+              hash[member] = nil
+            else
+              hash[member] = self[member]
+            end
           end
 
           hash
