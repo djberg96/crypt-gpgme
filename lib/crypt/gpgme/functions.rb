@@ -22,6 +22,7 @@ module Crypt
       attach_function :gpgme_get_pinentry_mode, [Structs::Context], :uint
       attach_function :gpgme_get_protocol, [Structs::Context], :uint
       attach_function :gpgme_get_protocol_name, [:uint], :string
+      attach_function :gpgme_get_sender, [Structs::Context], :string
       attach_function :gpgme_get_textmode, [Structs::Context], :bool
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_key_ref, [Structs::Key], :void
@@ -50,6 +51,7 @@ module Crypt
       attach_function :gpgme_set_offline, [Structs::Context, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_protocol, [Structs::Context, :uint], :uint
+      attach_function :gpgme_set_sender, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_textmode, [Structs::Context, :bool], :void
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
