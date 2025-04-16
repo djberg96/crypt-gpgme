@@ -28,6 +28,8 @@ module Crypt
       attach_function :gpgme_key_ref, [Structs::Key], :void
       attach_function :gpgme_key_unref, [Structs::Key], :void
       attach_function :gpgme_new, [Structs::Context], :uint
+      attach_function :gpgme_op_getauditlog, [Structs::Context, :pointer, :uint], :uint
+      attach_function :gpgme_op_getauditlog_start, [Structs::Context, :pointer, :uint], :uint
       attach_function :gpgme_op_keylist_start, [Structs::Context, :string, :int], :uint
       attach_function :gpgme_op_keylist_end, [Structs::Context], :uint
       attach_function :gpgme_op_keylist_ext_start, [Structs::Context, :pointer, :int, :int], :uint
