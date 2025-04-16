@@ -36,6 +36,9 @@ module Crypt
       attach_function :gpgme_op_keylist_from_data_start, [Structs::Context, :pointer, :int], :uint
       attach_function :gpgme_op_keylist_next, [Structs::Context, :pointer], :uint
       attach_function :gpgme_op_keylist_result, [Structs::Context], Structs::KeylistResult.by_value
+      attach_function :gpgme_op_sign, [Structs::Context, :pointer, :pointer, :uint], :uint
+      attach_function :gpgme_op_sign_result, [Structs::Context], :uint
+      attach_function :gpgme_op_sign_start, [Structs::Context, :pointer, :pointer, :uint], :uint
       attach_function :gpgme_op_tofu_policy, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_op_tofu_policy_start, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
