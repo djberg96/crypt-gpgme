@@ -16,23 +16,31 @@ module Crypt
       attach_function :gpgme_get_engine_info, [Structs::EngineInfo], :int
       attach_function :gpgme_get_dirinfo, [:string], :string
       attach_function :gpgme_get_include_certs, [Structs::Context], :int
-      attach_function :gpgme_get_key, [Structs::Context, :string, Structs::Key.by_ref, :bool], :uint
+      attach_function :gpgme_get_key, [Structs::Context, :string, :pointer, :bool], :uint
       attach_function :gpgme_get_keylist_mode, [Structs::Context], :uint
       attach_function :gpgme_get_offline, [Structs::Context], :bool
       attach_function :gpgme_get_pinentry_mode, [Structs::Context], :uint
       attach_function :gpgme_get_protocol, [Structs::Context], :uint
       attach_function :gpgme_get_protocol_name, [:uint], :string
+      attach_function :gpgme_get_sender, [Structs::Context], :string
       attach_function :gpgme_get_textmode, [Structs::Context], :bool
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_key_ref, [Structs::Key], :void
       attach_function :gpgme_key_unref, [Structs::Key], :void
       attach_function :gpgme_new, [Structs::Context], :uint
+      attach_function :gpgme_op_getauditlog, [Structs::Context, :pointer, :uint], :uint
+      attach_function :gpgme_op_getauditlog_start, [Structs::Context, :pointer, :uint], :uint
       attach_function :gpgme_op_keylist_start, [Structs::Context, :string, :int], :uint
       attach_function :gpgme_op_keylist_end, [Structs::Context], :uint
       attach_function :gpgme_op_keylist_ext_start, [Structs::Context, :pointer, :int, :int], :uint
       attach_function :gpgme_op_keylist_from_data_start, [Structs::Context, :pointer, :int], :uint
       attach_function :gpgme_op_keylist_next, [Structs::Context, :pointer], :uint
       attach_function :gpgme_op_keylist_result, [Structs::Context], Structs::KeylistResult.by_value
+      attach_function :gpgme_op_sign, [Structs::Context, :pointer, :pointer, :uint], :uint
+      attach_function :gpgme_op_sign_result, [Structs::Context], :uint
+      attach_function :gpgme_op_sign_start, [Structs::Context, :pointer, :pointer, :uint], :uint
+      attach_function :gpgme_op_tofu_policy, [Structs::Context, Structs::Key, :uint], :uint
+      attach_function :gpgme_op_tofu_policy_start, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
       attach_function :gpgme_pubkey_algo_string, [:pointer], :string
       attach_function :gpgme_release, [Structs::Context], :void
@@ -48,10 +56,12 @@ module Crypt
       attach_function :gpgme_set_offline, [Structs::Context, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_protocol, [Structs::Context, :uint], :uint
+      attach_function :gpgme_set_sender, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_textmode, [Structs::Context, :bool], :void
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
       attach_function :gpgme_strsource, [:uint], :string
+      attach_function :gpgme_wait, [Structs::Context, :pointer, :int], Structs::Context
     end
   end
 end

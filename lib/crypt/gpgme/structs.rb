@@ -1,19 +1,26 @@
 require 'ffi'
+require 'ffi/bit_struct'
 require_relative 'constants'
 
 module Crypt
   class GPGME
     module Structs
       extend FFI::Library
-      include Crypt::GPGME::Constants
 
       class FFI::Struct
         def to_hash
           hash = {}
+          bitfields = respond_to?(:bit_field_members) ? bit_field_members : {}
 
-          members.each do |member|
-            next if member.to_s.start_with?('_')
-            hash[member] = self[member]
+          members.flat_map { |m| bitfields[m] || m }.each do |member|
+            next if member.to_s.start_with?('_') # Skip unused members
+            next if member.to_s == 'next'        # Skip linked list pointers
+
+            if self[member].is_a?(FFI::Pointer) and self[member].null?
+              hash[member] = nil
+            else
+              hash[member] = self[member]
+            end
           end
 
           hash
@@ -31,25 +38,47 @@ module Crypt
       end
 
       # gpgme_op_keylist_result_t
-      class KeylistResult < FFI::Struct
+      class KeylistResult < FFI::BitStruct
+        layout(:properties, :uint)
+        bit_fields(:properties, :truncated, 1, :_unused, 31)
+      end
+
+      # gpgme_tofu_info_t
+      class TofuInfo < FFI::BitStruct
         layout(
-          :truncated, :uint, 1,
-          :_unused, :uint, 31
+          :next, :pointer,
+          :_properties, :uint, # bit fields
+          :signcount, :ushort,
+          :encrcount, :ushort,
+          :signfirst, :ulong,
+          :signlast, :ulong,
+          :encrfirst, :ulong,
+          :encrlast, :ulong,
+          :description, :string,
+        )
+
+        bit_fields(:_properties,
+          :validity, 3,
+          :policy, 4,
+          :_rfu, 25
         )
       end
 
       # gpgme_revocation_key_t
-      class RevocationKey < FFI::Struct
+      class RevocationKey < FFI::BitStruct
         layout(
           :next, :pointer,
           :pubkey_algo, :int,
           :fpr, :string,
           :key_class, :uint,
-          :sensitive, :uint
+          :properties, :uint # bit fields
         )
+
+        bit_fields(:properties, :sensitive, 1)
       end
 
-      class SigNotation < FFI::Struct
+      # struct _gpgme_sig_notation
+      class SigNotation < FFI::BitStruct
         layout(
           :next, :pointer,
           :name, :string,
@@ -57,24 +86,22 @@ module Crypt
           :name_len, :int,
           :value_len, :int,
           :flags, :uint,
-          :human_readable, :bool, 33,
-          :critical, :bool, 34,
-          :_unused, :int
+          :properties, :uint # bit fields
+        )
+
+        bit_fields(:properties,
+          :human_readable, 1,
+          :critical, 1,
+          :_unused, 30
         )
       end
 
       # gpgme_key_sig_t
-      class KeySig < FFI::Struct
+      class KeySig < FFI::BitStruct
         layout(
           :next, :pointer,
-          :revoked, :bool, 9,
-          :expired, :bool, 10,
-          :invalid, :bool, 11,
-          :exportable, :bool, 12,
-          :_unused, :uint, 13,
-          :trust_depth, :uint, 14,
-          :trust_value, :uint, 15,
-          :pubkey_algo, :uint, 16,
+          :properties, :uint,
+          :pubkey_algo, :uint,
           :keyid, :string,
           :_keyid, [:char, 17],
           :timestamp, :long,
@@ -86,9 +113,19 @@ module Crypt
           :email, :string,
           :comment, :string,
           :sig_class, :uint,
-          :notation, :uint,
+          :notations, :pointer,
           :_last_notation, :pointer,
           :trust_scope, :string
+        )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :expired, 1,
+          :invalid, 1,
+          :exportable, 1,
+          :_unused, 12,
+          :trust_depth, 8,
+          :trust_value, 8
         )
       end
 
@@ -105,27 +142,11 @@ module Crypt
       end
 
       # gpgme_subkey_t
-      class Subkey < FFI::Struct
+      class Subkey < FFI::BitStruct
         layout(
           :next, :pointer,
-          :revoked, :bool, 9,
-          :expired, :bool, 9,
-          :disabled, :bool, 9,
-          :invalid, :bool, 9,
-          :can_encrypt, :bool, 9,
-          :can_sign, :bool, 9,
-          :can_certify, :bool, 9,
-          :secret, :bool, 9,
-          :can_authenticate, :bool, 10,
-          :is_qualified, :bool, 10,
-          :is_cardkey, :bool, 10,
-          :is_de_vs, :bool, 10,
-          :can_renc, :bool, 10,
-          :can_timestamp, :bool, 10,
-          :is_group_owned, :bool, 10,
-          :beta_compliance, :bool, 10,
-          :unused, :uint, 11,
-          :pubkey_algo, :uint, 12,
+          :properties, :uint, # bit fields
+          :pubkey_algo, :uint,
           :length, :int,
           :keyid, :string,
           :_keyid, [:char, 17],
@@ -137,16 +158,33 @@ module Crypt
           :keygrip, :string,
           :v5fpr, :string
         )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :expired, 1,
+          :disabled, 1,
+          :invalid, 1,
+          :can_encrypt, 1,
+          :can_sign, 1,
+          :can_certify, 1,
+          :secret, 1,
+          :can_authenticate, 1,
+          :is_qualified, 1,
+          :is_cardkey, 1,
+          :is_de_vs, 1,
+          :can_renc, 1,
+          :can_timestamp, 1,
+          :is_group_owned, 1,
+          :beta_compliance, 1,
+          :unused, 16
+        )
       end
 
       # gpgme_user_id_t
-      class UserId < FFI::Struct
+      class UserId < FFI::BitStruct
         layout(
           :next, :pointer,
-          :revoked, :bool,
-          :invalid, :bool,
-          :_unused, :uint,
-          :origin, :uint,
+          :properties, :uint, # bit fields
           :validity, :uint,
           :uid, :string,
           :name, :string,
@@ -154,39 +192,34 @@ module Crypt
           :comment, :string,
           :signatures, :pointer,
           :_last_keysig, :pointer,
-          :tofu, :uint,
+          :address, :string,
+          :tofu, TofuInfo.by_ref,
           :last_update, :ulong,
           :uidhash, :string
+        )
+
+        bit_fields(:properties,
+          :revoked, 1,
+          :invalid, 1,
+          :_unused, 25,
+          :origin, 5
         )
       end
 
       # gpgme_key_t
-      class Key < FFI::Struct
+      class Key < FFI::BitStruct
+        include Crypt::GPGME::Constants
+
         layout(
           :_refs, :uint,
-          :revoked, :bool, 4,
-          :expired, :bool, 4,
-          :disabled, :bool, 4,
-          :invalid, :bool, 4,
-          :can_encrypt, :bool, 5,
-          :can_sign, :bool, 5,
-          :can_certify, :bool, 5,
-          :secret, :bool, 5,
-          :can_authenticate, :bool, 6,
-          :is_qualified, :bool, 6,
-          :has_encrypt, :bool, 6,
-          :has_sign, :bool, 6,
-          :has_certify, :bool, 7,
-          :has_authenticate, :bool, 7,
-          :_unused, :uint, 7,
-          :origin, :int, 7,
-          :protocol, :uint, 8,
+          :_properties, :uint, # bit fields
+          :protocol, :uint,
           :issuer_serial, :string,
           :issuer_name, :string,
           :chain_id, :string,
           :owner_trust, :uint,
-          :subkeys, :pointer,
-          :uids, :pointer,
+          :subkeys, Subkey.by_ref,
+          :uids, UserId.by_ref,
           :_last_subkey, :pointer,
           :_last_uid, :pointer,
           :keylist_mode, :uint,
@@ -195,23 +228,171 @@ module Crypt
           :revocation_keys, :pointer,
           :_last_revkey, :pointer
         )
-      end
 
-      # gpgme_tofu_info_t
-      class TofuInfo < FFI::Struct
-        layout(
-          :next, :pointer,
-          :validity, :uint, 9,
-          :policy, :uint, 10,
-          :_rfu, :uint, 11,
-          :signcount, :ushort, 12,
-          :encrcount, :ushort, 14,
-          :signfirst, :ulong, 16,
-          :signlast, :ulong, 24,
-          :encrfirst, :ulong, 32,
-          :encrlast, :ulong, 40,
-          :description, :string, 48
+        bit_fields(:_properties,
+          :revoked, 1,
+          :expired, 1,
+          :disabled, 1,
+          :invalid, 1,
+          :can_encrypt, 1,
+          :can_sign, 1,
+          :can_certify, 1,
+          :secret, 1,
+          :can_authenticate, 1,
+          :is_qualified, 1,
+          :has_encrypt, 1,
+          :has_sign, 1,
+          :has_certify, 1,
+          :has_authenticate, 1,
+          :_unused, 13,
+          :origin, 5
         )
+
+        bit_field_members.values.last.each do |member|
+          unless member.to_s.start_with?('_')
+            define_method "#{member}?" do
+              self[member] == 1 ? true : false
+            end
+          end
+        end
+
+        def to_hash
+          hash = super
+          uid_array = []
+          subkey_array = []
+
+          uid = self[:uids]
+          subkey = self[:subkeys]
+
+          uid_array << uid
+          subkey_array << subkey
+
+          loop do
+            uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
+            break if uid.null?
+            uid_array << uid
+          end
+
+          loop do
+            subkey = Crypt::GPGME::Structs::Subkey.new(subkey[:next])
+            break if subkey.null?
+            subkey_array << subkey
+          end
+
+          hash[:uids] = uid_array.map(&:to_hash)
+          hash[:subkeys] = subkey_array.map(&:to_hash)
+
+          hash
+        end
+
+        def fingerprint
+          self[:fpr]
+        end
+
+        def last_update
+          self[:last_update] == 0 ? 'unknown' : Time.at(self[:last_update])
+        end
+
+        def chain_id
+          self[:chain_id]
+        end
+
+        def issuer_name
+          self[:issuer_name]
+        end
+
+        def issuer_serial
+          self[:issuer_serial]
+        end
+
+        def protocol(numeric = false)
+          if numeric
+            self[:protocol]
+          else
+            case self[:protocol]
+              when GPGME_PROTOCOL_OpenPGP
+                'openpgp'
+              when GPGME_PROTOCOL_CMS
+                'cms'
+              when GPGME_PROTOCOL_GPGCONF
+                'gpgconf'
+              when GPGME_PROTOCOL_ASSUAN
+                'assuan'
+              when GPGME_PROTOCOL_G13
+                'g13'
+              when GPGME_PROTOCOL_UISERVER
+                'uiserver'
+              when GPGME_PROTOCOL_SPAWN
+                'spawn'
+              when GPGME_PROTOCOL_DEFAULT
+                'default'
+              when GPGME_PROTOCOL_UNKNOWN
+                'unknown'
+              else
+                'unknown'
+            end
+          end
+        end
+
+        def owner_trust(numeric = false)
+          if numeric
+            self[:owner_trust]
+          else
+            case self[:owner_trust]
+              when GPGME_VALIDITY_UNKNOWN
+                'unknown'
+              when GPGME_VALIDITY_UNDEFINED
+                'undefined'
+              when GPGME_VALIDITY_NEVER
+                'never'
+              when GPGME_VALIDITY_MARGINAL
+                'marginal'
+              when GPGME_VALIDITY_FULL
+                'full'
+              when GPGME_VALIDITY_ULTIMATE
+                'ultimate'
+              else
+                'unknown'
+            end
+          end
+        end
+
+        def keylist_mode(numeric = false)
+          if numeric
+            self[:keylist_mode]
+          else
+            case self[:keylist_mode]
+              when GPGME_KEYLIST_MODE_LOCAL
+                'local'
+              when GPGME_KEYLIST_MODE_EXTERN
+                'extern'
+              when GPGME_KEYLIST_MODE_SIGS
+                'sigs'
+              when GPGME_KEYLIST_MODE_SIG_NOTATIONS
+                'signature notations'
+              when GPGME_KEYLIST_MODE_WITH_SECRET
+                'with secret'
+              when GPGME_KEYLIST_MODE_WITH_TOFU
+                'with tofu'
+              when GPGME_KEYLIST_MODE_WITH_KEYGRIP
+                'with keygrip'
+              when GPGME_KEYLIST_MODE_EPHEMERAL
+                'ephemeral'
+              when GPGME_KEYLIST_MODE_VALIDATE
+                'validate'
+              when GPGME_KEYLIST_MODE_FORCE_EXTERN
+                'extern'
+              when GPGME_KEYLIST_MODE_WITH_V5FPR
+                'with v5fpr'
+              when GPGME_KEYLIST_MODE_LOCATE
+                'locate'
+              when GPGME_KEYLIST_MODE_LOCATE_EXTERNAL
+                'locate external'
+              else
+                'unknown'
+            end
+          end
+        end
       end
     end
   end

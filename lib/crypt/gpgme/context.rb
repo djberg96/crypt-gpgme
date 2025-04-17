@@ -67,10 +67,12 @@ module Crypt
       end
 
       def get_key(fingerprint, secret = true)
-        key = Crypt::GPGME::Structs::Key.new
+        key = FFI::MemoryPointer.new(:pointer)
         err = gpgme_get_key(@ctx.pointer, fingerprint, key, secret)
 
-        if err != GPG_ERR_NO_ERROR
+        if err == GPG_ERR_NO_ERROR
+          key = Crypt::GPGME::Structs::Key.new(key.read_pointer)
+        else
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_get_key failed: #{errstr}"
         end
