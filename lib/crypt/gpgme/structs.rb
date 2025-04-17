@@ -204,6 +204,13 @@ module Crypt
           :_unused, 25,
           :origin, 5
         )
+
+        def to_hash
+          hash = super
+          hash[:tofu] = nil if self[:tofu].null?
+          hash[:signatures] = nil if self[:signatures].null?
+          hash
+        end
       end
 
       # gpgme_key_t
