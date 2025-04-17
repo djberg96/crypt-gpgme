@@ -39,8 +39,8 @@ module Crypt
 
       # gpgme_op_keylist_result_t
       class KeylistResult < FFI::BitStruct
-        layout(:properties, :uint)
-        bit_fields(:properties, :truncated, 1, :_unused, 31)
+        layout(:_properties, :uint)
+        bit_fields(:_properties, :truncated, 1, :_unused, 31)
       end
 
       # gpgme_tofu_info_t
@@ -71,10 +71,10 @@ module Crypt
           :pubkey_algo, :int,
           :fpr, :string,
           :key_class, :uint,
-          :properties, :uint # bit fields
+          :_properties, :uint # bit fields
         )
 
-        bit_fields(:properties, :sensitive, 1)
+        bit_fields(:_properties, :sensitive, 1)
       end
 
       # struct _gpgme_sig_notation
@@ -86,10 +86,10 @@ module Crypt
           :name_len, :int,
           :value_len, :int,
           :flags, :uint,
-          :properties, :uint # bit fields
+          :_properties, :uint # bit fields
         )
 
-        bit_fields(:properties,
+        bit_fields(:_properties,
           :human_readable, 1,
           :critical, 1,
           :_unused, 30
@@ -100,7 +100,7 @@ module Crypt
       class KeySig < FFI::BitStruct
         layout(
           :next, :pointer,
-          :properties, :uint,
+          :_properties, :uint, # bit fields
           :pubkey_algo, :uint,
           :keyid, :string,
           :_keyid, [:char, 17],
@@ -118,7 +118,7 @@ module Crypt
           :trust_scope, :string
         )
 
-        bit_fields(:properties,
+        bit_fields(:_properties,
           :revoked, 1,
           :expired, 1,
           :invalid, 1,
@@ -145,7 +145,7 @@ module Crypt
       class Subkey < FFI::BitStruct
         layout(
           :next, :pointer,
-          :properties, :uint, # bit fields
+          :_properties, :uint, # bit fields
           :pubkey_algo, :uint,
           :length, :int,
           :keyid, :string,
@@ -159,7 +159,7 @@ module Crypt
           :v5fpr, :string
         )
 
-        bit_fields(:properties,
+        bit_fields(:_properties,
           :revoked, 1,
           :expired, 1,
           :disabled, 1,
@@ -184,7 +184,7 @@ module Crypt
       class UserId < FFI::BitStruct
         layout(
           :next, :pointer,
-          :properties, :uint, # bit fields
+          :_properties, :uint, # bit fields
           :validity, :uint,
           :uid, :string,
           :name, :string,
@@ -198,7 +198,7 @@ module Crypt
           :uidhash, :string
         )
 
-        bit_fields(:properties,
+        bit_fields(:_properties,
           :revoked, 1,
           :invalid, 1,
           :_unused, 25,
