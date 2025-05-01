@@ -118,6 +118,17 @@ module Crypt
         {category => value}
       end
 
+      def set_tofu_policy(key, value)
+        err = gpgme_op_tofu_policy(@ctx.pointer, key, value)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_tofu_policy failed: #{errstr}"
+        end
+
+        value
+      end
+
       def protocol
         gpgme_get_protocol(@ctx.pointer)
       end
