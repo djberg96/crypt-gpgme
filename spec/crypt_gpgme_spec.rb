@@ -84,7 +84,7 @@ RSpec.describe Crypt::GPGME do
 
     let(:dummy){ Class.new{ extend Mkmf::Lite } }
     let(:header) { 'gpgme.h' }
-    let(:path){ RbConfig::CONFIG['host_os'] =~ /darwin/i ? '/opt/homebrew/include' : nil }
+    let(:path){ RbConfig::CONFIG['host_os'] =~ /darwin/i ? '/opt/homebrew/include' : '/usr/local/include' }
 
     example 'engine_info is the expected size' do
       expect(Crypt::GPGME::Structs::EngineInfo.size).to eq(dummy.check_sizeof('struct _gpgme_engine_info', header, path))
