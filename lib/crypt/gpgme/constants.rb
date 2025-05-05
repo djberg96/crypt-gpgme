@@ -717,6 +717,19 @@ module Crypt
       GPGME_SIGSUM_BAD_POLICY    = 0x0400
       GPGME_SIGSUM_SYS_ERROR     = 0x0800
       GPGME_SIGSUM_TOFU_CONFLICT = 0x1000
+
+      GPGME_CREATE_SIGN       = (1 << 0)
+      GPGME_CREATE_ENCR       = (1 << 1)
+      GPGME_CREATE_CERT       = (1 << 2)
+      GPGME_CREATE_AUTH       = (1 << 3)
+      GPGME_CREATE_NOPASSWD   = (1 << 7)
+      GPGME_CREATE_SELFSIGNED = (1 << 8)
+      GPGME_CREATE_NOSTORE    = (1 << 9)
+      GPGME_CREATE_WANTPUB    = (1 << 10)
+      GPGME_CREATE_WANTSEC    = (1 << 11)
+      GPGME_CREATE_FORCE      = (1 << 12)
+      GPGME_CREATE_NOEXPIRE   = (1 << 13)
+      GPGME_CREATE_ADSK       = (1 << 14)
     end
   end
 end
