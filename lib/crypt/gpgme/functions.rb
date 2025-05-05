@@ -28,7 +28,16 @@ module Crypt
       attach_function :gpgme_key_ref, [Structs::Key], :void
       attach_function :gpgme_key_unref, [Structs::Key], :void
       attach_function :gpgme_new, [Structs::Context], :uint
+      attach_function :gpgme_op_adduid, [Structs::Context, Structs::Key, :string, :uint], :uint
+      attach_function :gpgme_op_adduid_start, [Structs::Context, Structs::Key, :string, :uint], :uint
+      attach_function :gpgme_op_createkey, [Structs::Context, :string, :string, :uint, :uint, Structs::Key, :uint], :uint
+      attach_function :gpgme_op_createkey_start, [Structs::Context, :string, :string, :uint, :uint, Structs::Key, :uint], :uint
+      attach_function :gpgme_op_createsubkey, [Structs::Context, Structs::Key, :string, :uint, :uint, :uint], :uint
+      attach_function :gpgme_op_createsubkey_start, [Structs::Context, Structs::Key, :string, :uint, :uint, :uint], :uint
       attach_function :gpgme_op_getauditlog, [Structs::Context, :pointer, :uint], :uint
+      attach_function :gpgme_op_genkey, [Structs::Context, :string, :pointer, :pointer], :uint
+      attach_function :gpgme_op_genkey_result, [Structs::Context], :pointer
+      attach_function :gpgme_op_genkey_start, [Structs::Context, :string, :pointer, :pointer], :uint
       attach_function :gpgme_op_getauditlog_start, [Structs::Context, :pointer, :uint], :uint
       attach_function :gpgme_op_keylist_start, [Structs::Context, :string, :int], :uint
       attach_function :gpgme_op_keylist_end, [Structs::Context], :uint
@@ -36,6 +45,10 @@ module Crypt
       attach_function :gpgme_op_keylist_from_data_start, [Structs::Context, :pointer, :int], :uint
       attach_function :gpgme_op_keylist_next, [Structs::Context, :pointer], :uint
       attach_function :gpgme_op_keylist_result, [Structs::Context], Structs::KeylistResult.by_value
+      attach_function :gpgme_op_revuid, [Structs::Context, Structs::Key, :string, :uint], :uint
+      attach_function :gpgme_op_revuid_start, [Structs::Context, Structs::Key, :string, :uint], :uint
+      attach_function :gpgme_op_set_uid_flag, [Structs::Context, Structs::Key, :string, :string, :string], :uint
+      attach_function :gpgme_op_set_uid_flag_start, [Structs::Context, Structs::Key, :string, :string, :string], :uint
       attach_function :gpgme_op_sign, [Structs::Context, :pointer, :pointer, :uint], :uint
       attach_function :gpgme_op_sign_result, [Structs::Context], :uint
       attach_function :gpgme_op_sign_start, [Structs::Context, :pointer, :pointer, :uint], :uint
