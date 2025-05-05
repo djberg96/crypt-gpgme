@@ -15,6 +15,7 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files = Dir['doc/*.rdoc']
 
   spec.add_dependency('ffi', '~> 1.1')
+  spec.add_dependency('ffi-bitfield', '~> 0.0.10')
 
   spec.add_development_dependency('rspec')
   spec.add_development_dependency('rspec_boolean')
