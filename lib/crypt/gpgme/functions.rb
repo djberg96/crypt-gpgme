@@ -45,6 +45,10 @@ module Crypt
       attach_function :gpgme_op_keylist_from_data_start, [Structs::Context, :pointer, :int], :uint
       attach_function :gpgme_op_keylist_next, [Structs::Context, :pointer], :uint
       attach_function :gpgme_op_keylist_result, [Structs::Context], Structs::KeylistResult.by_value
+      attach_function :gpgme_op_keysign, [Structs::Context, Structs::Key, :string, :uint, :uint], :uint
+      attach_function :gpgme_op_keysign_start, [Structs::Context, Structs::Key, :string, :uint, :uint], :uint
+      attach_function :gpgme_op_revsig, [Structs::Context, Structs::Key, Structs::Key, :string, :uint], :uint
+      attach_function :gpgme_op_revsig_start, [Structs::Context, Structs::Key, Structs::Key, :string, :uint], :uint
       attach_function :gpgme_op_revuid, [Structs::Context, Structs::Key, :string, :uint], :uint
       attach_function :gpgme_op_revuid_start, [Structs::Context, Structs::Key, :string, :uint], :uint
       attach_function :gpgme_op_set_uid_flag, [Structs::Context, Structs::Key, :string, :string, :string], :uint

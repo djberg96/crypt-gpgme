@@ -730,6 +730,11 @@ module Crypt
       GPGME_CREATE_FORCE      = (1 << 12)
       GPGME_CREATE_NOEXPIRE   = (1 << 13)
       GPGME_CREATE_ADSK       = (1 << 14)
+
+      GPGME_KEYSIGN_LOCAL     = (1 << 7)
+      GPGME_KEYSIGN_LFSEP     = (1 << 8)
+      GPGME_KEYSIGN_NOEXPIRE  = (1 << 9)
+      GPGME_KEYSIGN_FORCE     = (1 << 10)
     end
   end
 end
