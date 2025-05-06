@@ -55,6 +55,8 @@ module Crypt
   end
 end
 
+if $0 == __FILE__
+
 =begin
 #p Crypt::GPGME.set_global_flag("debug", "9:/Users/daniel.berger/mygpgme.log")
 require 'pp'
@@ -65,7 +67,11 @@ pp Crypt::GPGME::Engine.get_info
 =end
 #=begin
 #p Crypt::GPGME.check_version
-#ctx = Crypt::GPGME::Context.new
+ctx = Crypt::GPGME::Context.new
+fpr = "C9D8 3C01 0035 9499 0E2F  E6C6 3D41 5506 6C03 D7EB"
+
+key = ctx.get_key(fpr)
+pp key.to_hash
 #p ctx.protocol
 #ctx.protocol = Crypt::GPGME::GPGME_PROTOCOL_ASSUAN
 #p ctx.protocol
@@ -82,3 +88,5 @@ pp Crypt::GPGME::Engine.get_info
 #p ctx.get_flag("bogus")
 #p ctx.list_keys
 #=end
+
+end
