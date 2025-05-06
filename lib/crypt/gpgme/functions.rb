@@ -34,6 +34,12 @@ module Crypt
       attach_function :gpgme_op_createkey_start, [Structs::Context, :string, :string, :uint, :uint, Structs::Key, :uint], :uint
       attach_function :gpgme_op_createsubkey, [Structs::Context, Structs::Key, :string, :uint, :uint, :uint], :uint
       attach_function :gpgme_op_createsubkey_start, [Structs::Context, Structs::Key, :string, :uint, :uint, :uint], :uint
+      attach_function :gpgme_op_export, [Structs::Context, :string, :uint, :pointer], :uint
+      attach_function :gpgme_op_export_start, [Structs::Context, :string, :uint, :pointer], :uint
+      attach_function :gpgme_op_export_ext, [Structs::Context, :string, :uint, :pointer], :uint
+      attach_function :gpgme_op_export_ext_start, [Structs::Context, :string, :uint, :pointer], :uint
+      attach_function :gpgme_op_export_keys, [Structs::Context, :pointer, :uint, :pointer], :uint
+      attach_function :gpgme_op_export_keys_start, [Structs::Context, :pointer, :uint, :pointer], :uint
       attach_function :gpgme_op_getauditlog, [Structs::Context, :pointer, :uint], :uint
       attach_function :gpgme_op_genkey, [Structs::Context, :string, :pointer, :pointer], :uint
       attach_function :gpgme_op_genkey_result, [Structs::Context], :pointer

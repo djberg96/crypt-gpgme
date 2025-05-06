@@ -735,6 +735,14 @@ module Crypt
       GPGME_KEYSIGN_LFSEP     = (1 << 8)
       GPGME_KEYSIGN_NOEXPIRE  = (1 << 9)
       GPGME_KEYSIGN_FORCE     = (1 << 10)
+
+      GPGME_EXPORT_MODE_EXTERN        = 2
+      GPGME_EXPORT_MODE_MINIMAL       = 4
+      GPGME_EXPORT_MODE_SECRET        = 16
+      GPGME_EXPORT_MODE_RAW           = 32
+      GPGME_EXPORT_MODE_PKCS12        = 64
+      GPGME_EXPORT_MODE_SSH           = 256
+      GPGME_EXPORT_MODE_SECRET_SUBKEY = 512
     end
   end
 end
