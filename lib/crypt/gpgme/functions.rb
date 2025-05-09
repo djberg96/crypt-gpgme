@@ -5,7 +5,11 @@ module Crypt
   class GPGME
     module Functions
       extend FFI::Library
+
       ffi_lib :gpgme
+
+      typedef :uint, :gpgme_error_t
+      typedef :uint, :gpgme_data_t
 
       attach_function :gpgme_check_version, [:string], :string
       attach_function :gpgme_ctx_get_engine_info, [Structs::Context], Structs::EngineInfo
@@ -45,6 +49,11 @@ module Crypt
       attach_function :gpgme_op_genkey_result, [Structs::Context], :pointer
       attach_function :gpgme_op_genkey_start, [Structs::Context, :string, :pointer, :pointer], :uint
       attach_function :gpgme_op_getauditlog_start, [Structs::Context, :pointer, :uint], :uint
+      attach_function :gpgme_op_import, [Structs::Context, :gpgme_data_t], :gpgme_error_t
+      attach_function :gpgme_op_import_start, [Structs::Context, :gpgme_data_t], :gpgme_error_t
+      attach_function :gpgme_op_import_keys, [Structs::Context, :pointer], :gpgme_error_t
+      attach_function :gpgme_op_import_keys_start, [Structs::Context, :pointer], :gpgme_error_t
+      attach_function :gpgme_op_import_result, [Structs::Context], :pointer
       attach_function :gpgme_op_keylist_start, [Structs::Context, :string, :int], :uint
       attach_function :gpgme_op_keylist_end, [Structs::Context], :uint
       attach_function :gpgme_op_keylist_ext_start, [Structs::Context, :pointer, :int, :int], :uint
@@ -54,6 +63,8 @@ module Crypt
       attach_function :gpgme_op_keysign, [Structs::Context, Structs::Key, :string, :uint, :uint], :uint
       attach_function :gpgme_op_keysign_start, [Structs::Context, Structs::Key, :string, :uint, :uint], :uint
       attach_function :gpgme_op_revsig, [Structs::Context, Structs::Key, Structs::Key, :string, :uint], :uint
+      attach_function :gpgme_op_receive_keys, [Structs::Context, :pointer], :gpgme_error_t
+      attach_function :gpgme_op_receive_keys_start, [Structs::Context, :pointer], :gpgme_error_t
       attach_function :gpgme_op_revsig_start, [Structs::Context, Structs::Key, Structs::Key, :string, :uint], :uint
       attach_function :gpgme_op_revuid, [Structs::Context, Structs::Key, :string, :uint], :uint
       attach_function :gpgme_op_revuid_start, [Structs::Context, Structs::Key, :string, :uint], :uint

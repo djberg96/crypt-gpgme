@@ -17,6 +17,7 @@ module Crypt
       typedef :uint, :gpgme_tofu_policy_t
       typedef :uint, :gpgme_keyorg_t
       typedef :uint, :gpgme_sigsum_t
+      typedef :uint, :gpgme_data_t
     end
   end
 end
