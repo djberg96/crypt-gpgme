@@ -54,7 +54,9 @@ module Crypt
       attach_function :gpgme_get_textmode, [Structs::Context], :bool
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_key_ref, [Structs::Key], :void
+      attach_function :gpgme_key_release, [Structs::Key], :void
       attach_function :gpgme_key_unref, [Structs::Key], :void
+      # attach_function :gpgme_keylist_result, [Structs::Context], :pointer
       attach_function :gpgme_new, [Structs::Context], :uint
       attach_function :gpgme_op_adduid, [Structs::Context, Structs::Key, :string, :uint], :uint
       attach_function :gpgme_op_adduid_start, [Structs::Context, Structs::Key, :string, :uint], :uint
