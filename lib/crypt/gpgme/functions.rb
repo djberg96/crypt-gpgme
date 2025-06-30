@@ -11,6 +11,20 @@ module Crypt
       typedef :uint, :gpgme_error_t
       typedef :uint, :gpgme_data_t
 
+      # Data buffer I/O operations
+      attach_function :gpgme_data_new, [:pointer], :gpgme_error_t
+      attach_function :gpgme_data_new_from_mem, [:pointer, :string, :size_t, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_file, [:pointer, :string, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_fd, [:pointer, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_stream, [:pointer, :pointer], :gpgme_error_t
+      attach_function :gpgme_data_release, [:gpgme_data_t], :void
+      attach_function :gpgme_data_seek, [:gpgme_data_t, :off_t, :int], :off_t
+      attach_function :gpgme_data_read, [:gpgme_data_t, :pointer, :size_t], :ssize_t
+      attach_function :gpgme_data_write, [:gpgme_data_t, :pointer, :size_t], :ssize_t
+      attach_function :gpgme_data_seek, [:gpgme_data_t, :off_t, :int], :off_t
+      # attach_function :gpgme_data_tell, [:gpgme_data_t], :off_t
+      attach_function :gpgme_data_release_and_get_mem, [:gpgme_data_t, :pointer], :pointer
+
       attach_function :gpgme_check_version, [:string], :string
       attach_function :gpgme_ctx_get_engine_info, [Structs::Context], Structs::EngineInfo
       attach_function :gpgme_ctx_set_engine_info, [Structs::Context, :uint, :string, :string], :int
