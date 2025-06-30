@@ -27,13 +27,16 @@ module Crypt
 
       # Crypto operations
       attach_function :gpgme_op_encrypt, [Structs::Context, :pointer, :uint, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
+      attach_function :gpgme_op_encrypt_result, [Structs::Context], :pointer
       attach_function :gpgme_op_encrypt_start, [Structs::Context, :pointer, :uint, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
       attach_function :gpgme_op_decrypt, [Structs::Context, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
+      attach_function :gpgme_op_decrypt_result, [Structs::Context], :pointer
       attach_function :gpgme_op_decrypt_start, [Structs::Context, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
       # attach_function :gpgme_op_sign_encrypt, [Structs::Context, :pointer, :uint, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
       # attach_function :gpgme_op_sign_encrypt_start, [Structs::Context, :pointer, :uint, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
       attach_function :gpgme_op_verify, [Structs::Context, :gpgme_data_t, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
       attach_function :gpgme_op_verify_start, [Structs::Context, :gpgme_data_t, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
+      attach_function :gpgme_op_verify_result, [Structs::Context], :pointer
 
       attach_function :gpgme_check_version, [:string], :string
       attach_function :gpgme_ctx_get_engine_info, [Structs::Context], Structs::EngineInfo
