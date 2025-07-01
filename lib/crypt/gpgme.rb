@@ -69,9 +69,14 @@ pp Crypt::GPGME::Engine.get_info
 #p Crypt::GPGME.check_version
 ctx = Crypt::GPGME::Context.new
 fpr = "C9D8 3C01 0035 9499 0E2F  E6C6 3D41 5506 6C03 D7EB"
+ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS
 
 key = ctx.get_key(fpr)
-pp key.to_hash
+#pp key.to_hash
+hash = key.to_hash
+uid = hash[:uids].first
+
+pp uid[:signatures].map{ |h| h[:keyid] }
 #p ctx.protocol
 #ctx.protocol = Crypt::GPGME::GPGME_PROTOCOL_ASSUAN
 #p ctx.protocol

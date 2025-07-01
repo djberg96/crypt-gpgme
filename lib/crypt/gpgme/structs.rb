@@ -190,7 +190,7 @@ module Crypt
           :name, :string,
           :email, :string,
           :comment, :string,
-          :signatures, :pointer,
+          :signatures, KeySig.by_ref,
           :_last_keysig, :pointer,
           :address, :string,
           :tofu, TofuInfo.by_ref,
@@ -208,7 +208,23 @@ module Crypt
         def to_hash
           hash = super
           hash[:tofu] = nil if self[:tofu].null?
-          hash[:signatures] = nil if self[:signatures].null?
+
+          if self[:signatures].null?
+            hash[:signatures] = nil
+          else
+            sig_array = []
+            sig = self[:signatures]
+            sig_array << sig
+
+            loop do
+              sig = Crypt::GPGME::Structs::KeySig.new(sig[:next])
+              break if sig.null?
+              sig_array << sig
+            end
+
+            hash[:signatures] = sig_array.map(&:to_hash)
+          end
+
           hash
         end
       end
