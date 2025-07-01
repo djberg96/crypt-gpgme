@@ -3,6 +3,7 @@ require_relative 'gpgme/functions'
 require_relative 'gpgme/context'
 require_relative 'gpgme/engine'
 require_relative 'gpgme/algorithm'
+require_relative 'gpgme/data'
 
 module Crypt
   class GPGME
@@ -71,12 +72,18 @@ ctx = Crypt::GPGME::Context.new
 fpr = "C9D8 3C01 0035 9499 0E2F  E6C6 3D41 5506 6C03 D7EB"
 ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS
 
-key = ctx.get_key(fpr)
-#pp key.to_hash
-hash = key.to_hash
-uid = hash[:uids].first
+#sig = ctx.sign("hello world")
+#pp sig.to_hash
 
-pp uid[:signatures].map{ |h| h[:keyid] }
+#key = ctx.get_key(fpr)
+#pp key.to_hash
+#hash = key.to_hash
+#uid = hash[:uids].first
+
+data = Crypt::GPGME::Data.new("hello world")
+pp data
+
+#pp uid[:signatures].map{ |h| h[:keyid] }
 #p ctx.protocol
 #ctx.protocol = Crypt::GPGME::GPGME_PROTOCOL_ASSUAN
 #p ctx.protocol

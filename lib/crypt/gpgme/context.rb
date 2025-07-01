@@ -158,6 +158,17 @@ module Crypt
         gpgme_set_pinentry_mode(@ctx.pointer, mode)
       end
 
+      def sign(data, sig = Crypt::GPGME::Structs::KeySig.new, mode = GPGME_SIG_MODE_NORMAL)
+        err = gpgme_op_sign(@ctx.pointer, data, sig, mode)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_sign failed: #{errstr}"
+        end
+
+        sig
+      end
+
       def text_mode?
         gpgme_get_textmode(@ctx.pointer)
       end

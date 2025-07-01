@@ -27,6 +27,14 @@ module Crypt
         end
       end
 
+      class Data < FFI::Struct
+        layout(:dh, :pointer)
+
+        def pointer
+          self[:dh]
+        end
+      end
+
       # This is an opaque data structure, so I'm really just
       # reserving a blob of memory here.
       class Context < FFI::Struct
