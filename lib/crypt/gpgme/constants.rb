@@ -743,6 +743,12 @@ module Crypt
       GPGME_EXPORT_MODE_PKCS12        = 64
       GPGME_EXPORT_MODE_SSH           = 256
       GPGME_EXPORT_MODE_SECRET_SUBKEY = 512
+
+      GPGME_SIG_MODE_NORMAL  = 0
+      GPGME_SIG_MODE_DETACH  = 0
+      GPGME_SIG_MODE_CLEAR   = 0
+      GPGME_SIG_MODE_ARCHIVE = 0
+      GPGME_SIG_MODE_FILE    = 0
     end
   end
 end
