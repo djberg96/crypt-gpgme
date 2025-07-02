@@ -10,10 +10,14 @@ module Crypt
         @buffer_size = 4096
 
         return if obj.nil?
-        return obj if obj.is_a?(Crypt::GPGME::Structs::Data)
         return obj if obj.is_a?(Data)
 
-        @data = Crypt::GPGME::Structs::Data.new
+        if obj.is_a?(Crypt::GPGME::Structs::Data)
+          @data = obj
+        else
+          @data = Crypt::GPGME::Structs::Data.new
+        end
+
         err = gpgme_data_new(@data)
 
         if err != GPG_ERR_NO_ERROR
@@ -23,12 +27,10 @@ module Crypt
 
         @object = obj
 
-        if obj.is_a?(Numeric)
+        if obj.is_a?(Numeric) || obj.respond_to?(:fileno)
           from_fd
         elsif obj.respond_to?(:to_str)
           from_str
-        else
-          from_io
         end
       end
 
@@ -60,6 +62,13 @@ module Crypt
       private
 
       def from_fd
+        fd = @object.respond_to?(:fileno) ? @object.fileno : @object
+        err = gpgme_data_new_from_fd(@data.pointer, fd)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_data_new_from_fd failed: #{errstr}"
+        end
       end
 
       def from_str
@@ -69,9 +78,6 @@ module Crypt
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_data_new_from_mem failed: #{errstr}"
         end
-      end
-
-      def from_io
       end
     end
   end
