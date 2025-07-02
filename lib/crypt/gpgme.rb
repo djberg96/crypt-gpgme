@@ -81,7 +81,8 @@ ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_
 #uid = hash[:uids].first
 
 data = Crypt::GPGME::Data.new("hello world")
-pp data
+#pp data
+p data.to_s
 
 #pp uid[:signatures].map{ |h| h[:keyid] }
 #p ctx.protocol

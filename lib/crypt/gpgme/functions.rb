@@ -9,14 +9,14 @@ module Crypt
       ffi_lib :gpgme
 
       typedef :uint, :gpgme_error_t
-      typedef :uint, :gpgme_data_t
+      typedef :pointer, :gpgme_data_t
 
       # Data buffer I/O operations
-      attach_function :gpgme_data_new, [:pointer], :gpgme_error_t
-      attach_function :gpgme_data_new_from_mem, [:pointer, :string, :size_t, :int], :gpgme_error_t
-      attach_function :gpgme_data_new_from_file, [:pointer, :string, :int], :gpgme_error_t
-      attach_function :gpgme_data_new_from_fd, [:pointer, :int], :gpgme_error_t
-      attach_function :gpgme_data_new_from_stream, [:pointer, :pointer], :gpgme_error_t
+      attach_function :gpgme_data_new, [Structs::Data], :gpgme_error_t
+      attach_function :gpgme_data_new_from_mem, [:gpgme_data_t, :pointer, :size_t, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_file, [:gpgme_data_t, :string, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_fd, [:gpgme_data_t, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_stream, [:gpgme_data_t, :pointer], :gpgme_error_t
       attach_function :gpgme_data_release, [:gpgme_data_t], :void
       attach_function :gpgme_data_seek, [:gpgme_data_t, :off_t, :int], :off_t
       attach_function :gpgme_data_read, [:gpgme_data_t, :pointer, :size_t], :ssize_t

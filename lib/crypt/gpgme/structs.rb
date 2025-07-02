@@ -33,6 +33,10 @@ module Crypt
         def pointer
           self[:dh]
         end
+
+        def dh
+          self[:dh].read_pointer
+        end
       end
 
       # This is an opaque data structure, so I'm really just
