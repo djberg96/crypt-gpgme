@@ -6,8 +6,8 @@ module Crypt
 
       attr_accessor :buffer_size
 
-      def initialize(obj)
-        @buffer_size = 4096
+      def initialize(obj, buffer_size = 4096)
+        @buffer_size = buffer_size
 
         return if obj.nil?
         return obj if obj.is_a?(Data)
@@ -36,7 +36,7 @@ module Crypt
         end
       end
 
-      def read(size = 4096)
+      def read(size = buffer_size)
         buf = FFI::MemoryPointer.new(:char, size)
         err = gpgme_data_read(@data.dh, buf, buf.size)
 
