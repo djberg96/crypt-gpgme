@@ -13,17 +13,16 @@ module Crypt
 
       # Data buffer I/O operations
       attach_function :gpgme_data_new, [Structs::Data], :gpgme_error_t
-      attach_function :gpgme_data_new_from_mem, [:gpgme_data_t, :pointer, :size_t, :int], :gpgme_error_t
       attach_function :gpgme_data_new_from_file, [:gpgme_data_t, :string, :int], :gpgme_error_t
       attach_function :gpgme_data_new_from_fd, [:gpgme_data_t, :int], :gpgme_error_t
+      attach_function :gpgme_data_new_from_mem, [:gpgme_data_t, :pointer, :size_t, :int], :gpgme_error_t
       attach_function :gpgme_data_new_from_stream, [:gpgme_data_t, :pointer], :gpgme_error_t
-      attach_function :gpgme_data_release, [:gpgme_data_t], :void
-      attach_function :gpgme_data_seek, [:gpgme_data_t, :off_t, :int], :off_t
       attach_function :gpgme_data_read, [:gpgme_data_t, :pointer, :size_t], :ssize_t
-      attach_function :gpgme_data_write, [:gpgme_data_t, :pointer, :size_t], :ssize_t
+      attach_function :gpgme_data_release, [:gpgme_data_t], :void
+      attach_function :gpgme_data_release_and_get_mem, [:gpgme_data_t, :pointer], :pointer
       attach_function :gpgme_data_seek, [:gpgme_data_t, :off_t, :int], :off_t
       # attach_function :gpgme_data_tell, [:gpgme_data_t], :off_t
-      attach_function :gpgme_data_release_and_get_mem, [:gpgme_data_t, :pointer], :pointer
+      attach_function :gpgme_data_write, [:gpgme_data_t, :pointer, :size_t], :ssize_t
 
       # Crypto operations
       attach_function :gpgme_op_encrypt, [Structs::Context, :pointer, :uint, :gpgme_data_t, :gpgme_data_t], :gpgme_error_t
