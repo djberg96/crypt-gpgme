@@ -29,6 +29,8 @@ module Crypt
 
         if obj.is_a?(Numeric) || obj.respond_to?(:fileno)
           from_fd
+        elsif obj.is_a?(String) && File.extname(obj).size > 0
+          from_file
         elsif obj.respond_to?(:to_str)
           from_str
         end
@@ -77,6 +79,15 @@ module Crypt
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_data_new_from_mem failed: #{errstr}"
+        end
+      end
+
+      def from_file
+        err = gpgme_data_new_from_file(@data.pointer, @object, 0)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_data_new_from_file failed: #{errstr}"
         end
       end
     end
