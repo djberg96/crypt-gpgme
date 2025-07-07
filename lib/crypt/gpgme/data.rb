@@ -61,6 +61,10 @@ module Crypt
         read
       end
 
+      def close
+        gpgme_data_release(@data.dh)
+      end
+
       private
 
       def from_fd
