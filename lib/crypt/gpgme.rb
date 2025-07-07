@@ -80,9 +80,15 @@ ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_
 #hash = key.to_hash
 #uid = hash[:uids].first
 
-data = Crypt::GPGME::Data.new("hello world")
+#data = Crypt::GPGME::Data.new("hello world")
+filename = 'test.txt'
+file = File.open(filename)
+
+data = Crypt::GPGME::Data.new(file.fileno)
+#data = Crypt::GPGME::Data.new(file)
 #pp data
 p data.to_s
+file.close
 
 #pp uid[:signatures].map{ |h| h[:keyid] }
 #p ctx.protocol
