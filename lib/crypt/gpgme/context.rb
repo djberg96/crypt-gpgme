@@ -92,8 +92,25 @@ module Crypt
         gpgme_set_include_certs(@ctx.pointer, num)
       end
 
-      def keylist_mode
-        gpgme_get_keylist_mode(@ctx.pointer)
+      def keylist_mode(human_readable: false)
+        mode = gpgme_get_keylist_mode(@ctx.pointer)
+
+        return mode unless human_readable
+
+        flags = []
+        flags << 'LOCAL' if (mode & GPGME_KEYLIST_MODE_LOCAL) != 0
+        flags << 'EXTERN' if (mode & GPGME_KEYLIST_MODE_EXTERN) != 0
+        flags << 'SIGS' if (mode & GPGME_KEYLIST_MODE_SIGS) != 0
+        flags << 'SIG_NOTATIONS' if (mode & GPGME_KEYLIST_MODE_SIG_NOTATIONS) != 0
+        flags << 'WITH_SECRET' if (mode & GPGME_KEYLIST_MODE_WITH_SECRET) != 0
+        flags << 'WITH_TOFU' if (mode & GPGME_KEYLIST_MODE_WITH_TOFU) != 0
+        flags << 'WITH_KEYGRIP' if (mode & GPGME_KEYLIST_MODE_WITH_KEYGRIP) != 0
+        flags << 'EPHEMERAL' if (mode & GPGME_KEYLIST_MODE_EPHEMERAL) != 0
+        flags << 'VALIDATE' if (mode & GPGME_KEYLIST_MODE_VALIDATE) != 0
+        flags << 'FORCE_EXTERN' if (mode & GPGME_KEYLIST_MODE_FORCE_EXTERN) != 0
+        flags << 'WITH_V5FPR' if (mode & GPGME_KEYLIST_MODE_WITH_V5FPR) != 0
+
+        flags.empty? ? 'NONE' : flags.join(' | ')
       end
 
       def keylist_mode=(mode)
@@ -215,5 +232,7 @@ end
 
 if $0 == __FILE__
   ctx = Crypt::GPGME::Context.new
-  p ctx.list_keys
+  p ctx.list_keys("djberg96").first
+  p ctx.get_engine_info
+  p ctx.keylist_mode
 end
