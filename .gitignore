@@ -1,1 +1,2 @@
 *.lock
+.rspec_status
