@@ -26,6 +26,7 @@ module Crypt
       #   end
       def initialize
         @ctx = Structs::Context.new
+        @released = false
         gpgme_check_version(nil)
         err = gpgme_new(@ctx)
 
@@ -415,14 +416,35 @@ module Crypt
         gpgme_set_textmode(@ctx.pointer, bool)
       end
 
+      # Returns whether the context has been released.
+      #
+      # @return [Boolean] true if the context has been released, false otherwise
+      #
+      # @example
+      #   ctx.released? # => false
+      #   ctx.release
+      #   ctx.released? # => true
+      def released?
+        @released
+      end
+
       # Releases the context and frees associated resources.
+      #
+      # This method can be called multiple times safely. After the first call,
+      # subsequent calls will have no effect.
       #
       # @return [void]
       #
       # @example
       #   ctx.release
+      #   ctx.released? # => true
       def release
-        gpgme_release(@ctx.pointer) if !@ctx.pointer.null?
+        return if @released
+
+        if !@ctx.pointer.null?
+          gpgme_release(@ctx.pointer)
+          @released = true
+        end
       end
 
       # Lists keys matching the given pattern.
