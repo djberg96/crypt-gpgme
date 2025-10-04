@@ -192,9 +192,10 @@ module Crypt
         arr = []
 
         while err == GPG_ERR_NO_ERROR
-          key = Structs::Key.new
-          err = gpgme_op_keylist_next(@ctx.pointer, key)
+          key_ptr = FFI::MemoryPointer.new(:pointer)
+          err = gpgme_op_keylist_next(@ctx.pointer, key_ptr)
           break if err != GPG_ERR_NO_ERROR
+          key = Structs::Key.new(key_ptr.read_pointer)
           arr << key.to_hash
           gpgme_key_unref(key)
         end
@@ -210,4 +211,9 @@ module Crypt
       end
     end
   end
+end
+
+if $0 == __FILE__
+  ctx = Crypt::GPGME::Context.new
+  p ctx.list_keys
 end
