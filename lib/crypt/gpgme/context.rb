@@ -1176,6 +1176,133 @@ module Crypt
         result[:fpr] = result_ptr.read_pointer.read_string unless result_ptr.read_pointer.null?
         result
       end
+
+      # Adds a new user ID to an existing key (synchronous).
+      #
+      # This method adds an additional user ID (name and email address) to an
+      # existing OpenPGP key. The key must be a secret key that you own.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param userid [String] the user ID to add in the format "Name <email@example.com>"
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Add a new email address to a key
+      #   key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.add_uid(key, "Alice Smith <alice.smith@newdomain.com>")
+      #
+      # @example Add an alternate name
+      #   ctx.add_uid(key, "Alice Jones <alice@example.com>")
+      #
+      # @note This operation requires the key's passphrase
+      # @note The user ID format should be "Name <email@example.com>" or "Name (Comment) <email@example.com>"
+      # @note The key must be a secret key
+      def add_uid(key, userid, reserved = 0)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_adduid(@ctx.pointer, key_struct, userid, reserved)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_adduid failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Adds a new user ID to an existing key (asynchronous).
+      #
+      # This is the asynchronous version of {#add_uid}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param userid [String] the user ID to add
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Add user ID asynchronously
+      #   key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.add_uid_start(key, "Alice <alice@newdomain.com>")
+      #   ctx.wait
+      #
+      # @note This operation requires the key's passphrase
+      # @note The key must be a secret key
+      def add_uid_start(key, userid, reserved = 0)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_adduid_start(@ctx.pointer, key_struct, userid, reserved)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_adduid_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Revokes a user ID from a key (synchronous).
+      #
+      # This method revokes (marks as invalid) a user ID on an OpenPGP key.
+      # The user ID is not deleted but marked as revoked. The key must be a
+      # secret key that you own.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param userid [String] the user ID to revoke (must match exactly)
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Revoke a user ID
+      #   key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.revoke_uid(key, "Alice Smith <alice.smith@olddomain.com>")
+      #
+      # @note This operation requires the key's passphrase
+      # @note The user ID string must match exactly
+      # @note The key must be a secret key
+      # @note Revoked user IDs remain on the key but are marked as invalid
+      def revoke_uid(key, userid, reserved = 0)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_revuid(@ctx.pointer, key_struct, userid, reserved)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_revuid failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Revokes a user ID from a key (asynchronous).
+      #
+      # This is the asynchronous version of {#revoke_uid}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param userid [String] the user ID to revoke
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Revoke user ID asynchronously
+      #   key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.revoke_uid_start(key, "Old Name <old@example.com>")
+      #   ctx.wait
+      #
+      # @note This operation requires the key's passphrase
+      # @note The key must be a secret key
+      def revoke_uid_start(key, userid, reserved = 0)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_revuid_start(@ctx.pointer, key_struct, userid, reserved)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_revuid_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end

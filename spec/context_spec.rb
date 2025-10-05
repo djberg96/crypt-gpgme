@@ -1087,4 +1087,154 @@ RSpec.describe Crypt::GPGME::Context do
 
     # Note: Testing with actual results requires completing a key generation operation.
   end
+
+  describe '#add_uid' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:add_uid)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.add_uid }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts key parameter' do
+      expect(subject.method(:add_uid).parameters).to include([:req, :key])
+    end
+
+    example 'accepts userid parameter' do
+      expect(subject.method(:add_uid).parameters).to include([:req, :userid])
+    end
+
+    example 'accepts optional reserved parameter' do
+      expect(subject.method(:add_uid).parameters).to include([:opt, :reserved])
+    end
+
+    example 'method has correct arity' do
+      # -3 means 2 required, 1 optional
+      expect(subject.method(:add_uid).arity).to eq(-3)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.add_uid(nil, "Test <test@example.com>") }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    example 'raises error with nil userid' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.add_uid(key, nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Actual UID addition requires a secret key with passphrase access.
+  end
+
+  describe '#add_uid_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:add_uid_start)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.add_uid_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:add_uid).parameters
+      async_params = subject.method(:add_uid_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of add_uid' do
+      expect(subject.method(:add_uid_start).arity).to eq(subject.method(:add_uid).arity)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.add_uid_start(nil, "Test <test@example.com>") }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    example 'raises error with nil userid' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.add_uid_start(key, nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
+
+  describe '#revoke_uid' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:revoke_uid)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.revoke_uid }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts key parameter' do
+      expect(subject.method(:revoke_uid).parameters).to include([:req, :key])
+    end
+
+    example 'accepts userid parameter' do
+      expect(subject.method(:revoke_uid).parameters).to include([:req, :userid])
+    end
+
+    example 'accepts optional reserved parameter' do
+      expect(subject.method(:revoke_uid).parameters).to include([:opt, :reserved])
+    end
+
+    example 'method has correct arity' do
+      # -3 means 2 required, 1 optional
+      expect(subject.method(:revoke_uid).arity).to eq(-3)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.revoke_uid(nil, "Test <test@example.com>") }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    example 'raises error with nil userid' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.revoke_uid(key, nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Actual UID revocation requires a secret key with passphrase access.
+  end
+
+  describe '#revoke_uid_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:revoke_uid_start)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.revoke_uid_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:revoke_uid).parameters
+      async_params = subject.method(:revoke_uid_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of revoke_uid' do
+      expect(subject.method(:revoke_uid_start).arity).to eq(subject.method(:revoke_uid).arity)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.revoke_uid_start(nil, "Test <test@example.com>") }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    example 'raises error with nil userid' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.revoke_uid_start(key, nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
 end
