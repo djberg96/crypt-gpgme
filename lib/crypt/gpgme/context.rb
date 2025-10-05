@@ -2302,6 +2302,110 @@ module Crypt
 
         nil
       end
+
+      # Change the password for a key.
+      #
+      # This method changes the passphrase for the specified key. The operation
+      # is interactive and will prompt for the old and new passphrases using the
+      # configured passphrase callback or pinentry program.
+      #
+      # Note: This operation requires access to the secret key and will fail if
+      # the secret key is not available or if incorrect passphrases are provided.
+      #
+      # @param key [Key, Structs::Key] The key whose password to change.
+      # @param flags [Integer] Reserved for future use, should be 0.
+      #
+      # @return [nil]
+      #
+      # @raise [ArgumentError] If key is nil.
+      # @raise [TypeError] If key is not a valid Key object.
+      # @raise [SystemCallError] If the password change fails.
+      #
+      # @example Change password for a key
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", 0, :object)
+      #   ctx.change_password(keys.first) if keys.any?
+      #
+      # @example Change password with explicit flags
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", 0, :object)
+      #   ctx.change_password(keys.first, 0) if keys.any?
+      #
+      # @note This operation is interactive and requires user input
+      # @note The key must have a secret key component
+      # @note Passphrase prompts are handled by gpg-agent or pinentry
+      #
+      def change_password(key, flags = 0)
+        raise ArgumentError, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        raise TypeError, "key must be a Key object" if key_struct.nil?
+
+        err = Functions.gpgme_op_passwd(@ctx, key_struct, flags)
+
+        if err != 0
+          raise SystemCallError.new(Functions.gpgme_strerror(err), err)
+        end
+
+        nil
+      end
+
+      # Change the password for a key asynchronously.
+      #
+      # This method starts an asynchronous operation to change the passphrase
+      # for the specified key. The operation must be completed by calling wait()
+      # on the context.
+      #
+      # The operation is interactive and will prompt for the old and new passphrases
+      # using the configured passphrase callback or pinentry program.
+      #
+      # @param key [Key, Structs::Key] The key whose password to change.
+      # @param flags [Integer] Reserved for future use, should be 0.
+      #
+      # @return [nil]
+      #
+      # @raise [ArgumentError] If key is nil.
+      # @raise [TypeError] If key is not a valid Key object.
+      # @raise [SystemCallError] If the operation cannot be started.
+      #
+      # @example Change password asynchronously
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", 0, :object)
+      #   if keys.any?
+      #     ctx.change_password_start(keys.first)
+      #     ctx.wait
+      #   end
+      #
+      # @example Change password with custom error handling
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", 0, :object)
+      #   if keys.any?
+      #     begin
+      #       ctx.change_password_start(keys.first)
+      #       ctx.wait
+      #     rescue SystemCallError => e
+      #       puts "Password change failed: #{e.message}"
+      #     end
+      #   end
+      #
+      # @note This operation is interactive and requires user input
+      # @note Must call wait() to complete the operation
+      # @note The key must have a secret key component
+      #
+      def change_password_start(key, flags = 0)
+        raise ArgumentError, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        raise TypeError, "key must be a Key object" if key_struct.nil?
+
+        err = Functions.gpgme_op_passwd_start(@ctx, key_struct, flags)
+
+        if err != 0
+          raise SystemCallError.new(Functions.gpgme_strerror(err), err)
+        end
+
+        nil
+      end
     end
   end
 end

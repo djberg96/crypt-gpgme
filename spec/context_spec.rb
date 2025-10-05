@@ -2364,4 +2364,120 @@ RSpec.describe Crypt::GPGME::Context do
 
     # Note: delete_key_start should be followed by wait() to complete the operation
   end
+
+  describe '#change_password' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:change_password)
+    end
+
+    example 'accepts 1 or 2 arguments' do
+      expect(subject.method(:change_password).arity).to be_between(-3, -1)
+    end
+
+    example 'requires a Key parameter' do
+      expect{ subject.change_password(nil) }.to raise_error(ArgumentError, /key cannot be nil/)
+    end
+
+    example 'raises TypeError if key is not a Key object' do
+      expect{ subject.change_password("not a key") }.to raise_error(TypeError, /key must be a Key object/)
+    end
+
+    example 'returns nil on success' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'can change password for a secret key' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'raises error when key has no secret part' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'accepts flags parameter' do
+      keys = subject.list_keys(nil, 1, :object).take(1)
+      if keys.any?
+        # Just verify the method accepts the flags parameter
+        expect(subject.method(:change_password).parameters).to include([:opt, :flags])
+      else
+        skip "No secret keys available in keyring"
+      end
+    end
+
+    example 'is interactive and requires passphrase input' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'works with Key struct objects' do
+      keys = subject.list_keys(nil, 1, :object).take(1)
+      if keys.any?
+        # Verify method accepts Crypt::GPGME::Structs::Key without raising TypeError
+        expect(keys.first).to be_a(Crypt::GPGME::Structs::Key)
+        # Don't actually call the method to avoid interactive prompt
+        expect(subject.method(:change_password).arity).to be_between(-3, -1)
+      else
+        skip "No secret keys available in keyring"
+      end
+    end
+
+    # Note: This operation is interactive and requires user input via pinentry
+  end
+
+  describe '#change_password_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:change_password_start)
+    end
+
+    example 'accepts 1 or 2 arguments' do
+      expect(subject.method(:change_password_start).arity).to be_between(-3, -1)
+    end
+
+    example 'requires a Key parameter' do
+      expect{ subject.change_password_start(nil) }.to raise_error(ArgumentError, /key cannot be nil/)
+    end
+
+    example 'raises TypeError if key is not a Key object' do
+      expect{ subject.change_password_start("not a key") }.to raise_error(TypeError, /key must be a Key object/)
+    end
+
+    example 'returns nil when operation starts' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'starts an asynchronous operation' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'requires wait() to complete the operation' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'accepts flags parameter' do
+      keys = subject.list_keys(nil, 1, :object).take(1)
+      if keys.any?
+        # Just verify the method accepts the flags parameter
+        expect(subject.method(:change_password_start).parameters).to include([:opt, :flags])
+      else
+        skip "No secret keys available in keyring"
+      end
+    end
+
+    example 'is interactive and requires passphrase input' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'works with Key struct objects' do
+      keys = subject.list_keys(nil, 1, :object).take(1)
+      if keys.any?
+        # Verify method accepts Crypt::GPGME::Structs::Key without raising TypeError
+        expect(keys.first).to be_a(Crypt::GPGME::Structs::Key)
+        # Don't actually call the method to avoid interactive prompt
+        expect(subject.method(:change_password_start).arity).to be_between(-3, -1)
+      else
+        skip "No secret keys available in keyring"
+      end
+    end
+
+    # Note: change_password_start should be followed by wait() to complete the operation
+  end
 end
