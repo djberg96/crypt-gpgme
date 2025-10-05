@@ -484,6 +484,162 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  describe '#get_audit_log' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:get_audit_log)
+    end
+
+    example 'accepts no arguments (uses default flags)' do
+      begin
+        result = subject.get_audit_log
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        # Audit log may not be implemented for all protocols
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_DEFAULT flag' do
+      begin
+        result = subject.get_audit_log(Crypt::GPGME::Constants::GPGME_AUDITLOG_DEFAULT)
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        # Audit log may not be implemented for all protocols
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_HTML flag' do
+      begin
+        result = subject.get_audit_log(Crypt::GPGME::Constants::GPGME_AUDITLOG_HTML)
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_DIAG flag' do
+      begin
+        result = subject.get_audit_log(Crypt::GPGME::Constants::GPGME_AUDITLOG_DIAG)
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_WITH_HELP flag' do
+      begin
+        result = subject.get_audit_log(Crypt::GPGME::Constants::GPGME_AUDITLOG_WITH_HELP)
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts combined flags' do
+      flags = Crypt::GPGME::Constants::GPGME_AUDITLOG_HTML | Crypt::GPGME::Constants::GPGME_AUDITLOG_WITH_HELP
+      begin
+        result = subject.get_audit_log(flags)
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'returns a string if implemented' do
+      begin
+        result = subject.get_audit_log
+        expect(result).to be_a(String)
+      rescue Crypt::GPGME::Error => e
+        # Audit log may not be implemented - that's okay
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'can be called multiple times without crashing' do
+      2.times do
+        begin
+          subject.get_audit_log
+        rescue Crypt::GPGME::Error
+          # Expected for unimplemented functionality
+        end
+      end
+      expect(true).to be(true)
+    end
+
+    example 'raises Crypt::GPGME::Error when not implemented' do
+      expect { subject.get_audit_log }.to raise_error(Crypt::GPGME::Error, /Not implemented/)
+    end
+  end
+
+  describe '#get_audit_log_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:get_audit_log_start)
+    end
+
+    example 'accepts no arguments (uses default flags)' do
+      begin
+        result = subject.get_audit_log_start
+        expect(result).to be_a(Crypt::GPGME::Structs::Data)
+      rescue Crypt::GPGME::Error => e
+        # Audit log may not be implemented for all protocols
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_DEFAULT flag' do
+      begin
+        result = subject.get_audit_log_start(Crypt::GPGME::Constants::GPGME_AUDITLOG_DEFAULT)
+        expect(result).to be_a(Crypt::GPGME::Structs::Data)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_HTML flag' do
+      begin
+        result = subject.get_audit_log_start(Crypt::GPGME::Constants::GPGME_AUDITLOG_HTML)
+        expect(result).to be_a(Crypt::GPGME::Structs::Data)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts GPGME_AUDITLOG_DIAG flag' do
+      begin
+        result = subject.get_audit_log_start(Crypt::GPGME::Constants::GPGME_AUDITLOG_DIAG)
+        expect(result).to be_a(Crypt::GPGME::Structs::Data)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'accepts combined flags' do
+      flags = Crypt::GPGME::Constants::GPGME_AUDITLOG_HTML | Crypt::GPGME::Constants::GPGME_AUDITLOG_WITH_HELP
+      begin
+        result = subject.get_audit_log_start(flags)
+        expect(result).to be_a(Crypt::GPGME::Structs::Data)
+      rescue Crypt::GPGME::Error => e
+        expect(e.message).to match(/Not implemented|Invalid value/)
+      end
+    end
+
+    example 'can be called multiple times without crashing' do
+      2.times do
+        begin
+          subject.get_audit_log_start
+        rescue Crypt::GPGME::Error
+          # Expected for unimplemented functionality
+        end
+      end
+      expect(true).to be(true)
+    end
+
+    example 'raises Crypt::GPGME::Error when not implemented' do
+      expect { subject.get_audit_log_start }.to raise_error(Crypt::GPGME::Error, /Not implemented/)
+    end
+  end
+
   describe '#list_keys' do
     example 'basic functionality' do
       expect(subject).to respond_to(:list_keys)

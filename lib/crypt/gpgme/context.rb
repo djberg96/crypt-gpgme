@@ -527,6 +527,99 @@ module Crypt
         @status_callback
       end
 
+      # Retrieves the audit log for the most recent operation.
+      #
+      # This method can be called after a cryptographic operation (successful or failed)
+      # to retrieve detailed audit information about what happened during the operation.
+      #
+      # @param flags [Integer] flags controlling the audit log format
+      #   Available flags:
+      #   - GPGME_AUDITLOG_DEFAULT (0): Default format
+      #   - GPGME_AUDITLOG_HTML (1): HTML format
+      #   - GPGME_AUDITLOG_DIAG (2): Diagnostic format
+      #   - GPGME_AUDITLOG_WITH_HELP (128): Include help text (can be combined with other flags)
+      # @return [String] the audit log as a string
+      # @raise [Crypt::GPGME::Error] if retrieving the audit log fails
+      #
+      # @example Get default format audit log
+      #   audit_log = ctx.get_audit_log
+      #
+      # @example Get HTML format audit log
+      #   audit_log = ctx.get_audit_log(GPGME_AUDITLOG_HTML)
+      #
+      # @example Get HTML format with help text
+      #   audit_log = ctx.get_audit_log(GPGME_AUDITLOG_HTML | GPGME_AUDITLOG_WITH_HELP)
+      def get_audit_log(flags = GPGME_AUDITLOG_DEFAULT)
+        # Create a data object to hold the audit log
+        output = Structs::Data.new
+        err = gpgme_data_new(output)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_data_new failed: #{errstr}"
+        end
+
+        # Get the audit log
+        err = gpgme_op_getauditlog(@ctx.pointer, output.pointer, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          gpgme_data_release(output.pointer)
+          raise Crypt::GPGME::Error, "gpgme_op_getauditlog failed: #{errstr}"
+        end
+
+        # Read the audit log data
+        gpgme_data_seek(output.pointer, 0, 0) # Seek to beginning
+
+        result = String.new
+        buffer_size = 4096
+        buffer = FFI::MemoryPointer.new(:char, buffer_size)
+
+        loop do
+          bytes_read = gpgme_data_read(output.pointer, buffer, buffer_size)
+          break if bytes_read <= 0
+          result << buffer.read_string(bytes_read)
+        end
+
+        # Clean up
+        gpgme_data_release(output.pointer)
+
+        result
+      end
+
+      # Starts an asynchronous audit log retrieval operation.
+      #
+      # This is the asynchronous version of {#get_audit_log}. After calling this method,
+      # you need to wait for the operation to complete before reading the audit log.
+      #
+      # @param flags [Integer] flags controlling the audit log format (see {#get_audit_log})
+      # @return [Crypt::GPGME::Structs::Data] the data object that will contain the audit log
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example
+      #   output = ctx.get_audit_log_start(GPGME_AUDITLOG_HTML)
+      #   # Wait for operation to complete...
+      #   # Read from output data object
+      def get_audit_log_start(flags = GPGME_AUDITLOG_DEFAULT)
+        output = Structs::Data.new
+        err = gpgme_data_new(output)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_data_new failed: #{errstr}"
+        end
+
+        err = gpgme_op_getauditlog_start(@ctx.pointer, output.pointer, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          gpgme_data_release(output.pointer)
+          raise Crypt::GPGME::Error, "gpgme_op_getauditlog_start failed: #{errstr}"
+        end
+
+        output
+      end
+
       # Signs data.
       #
       # @param data [Crypt::GPGME::Structs::Data] the data to sign

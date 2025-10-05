@@ -749,6 +749,11 @@ module Crypt
       GPGME_SIG_MODE_CLEAR   = 2
       GPGME_SIG_MODE_ARCHIVE = 4
       GPGME_SIG_MODE_FILE    = 8
+
+      GPGME_AUDITLOG_DEFAULT   = 0
+      GPGME_AUDITLOG_HTML      = 1
+      GPGME_AUDITLOG_DIAG      = 2
+      GPGME_AUDITLOG_WITH_HELP = 128
     end
   end
 end
