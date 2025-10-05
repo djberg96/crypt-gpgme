@@ -11,6 +11,9 @@ module Crypt
       typedef :uint, :gpgme_error_t
       typedef :pointer, :gpgme_data_t
 
+      # Progress callback: void (*callback)(void *opaque, const char *what, int type, int current, int total)
+      callback :gpgme_progress_cb_t, [:pointer, :string, :int, :int, :int], :void
+
       # Data buffer I/O operations
       attach_function :gpgme_data_new, [Structs::Data], :gpgme_error_t
       attach_function :gpgme_data_new_from_file, [:gpgme_data_t, :string, :int], :gpgme_error_t
@@ -54,6 +57,7 @@ module Crypt
       attach_function :gpgme_get_protocol_name, [:uint], :string
       attach_function :gpgme_get_sender, [Structs::Context], :string
       attach_function :gpgme_get_textmode, [Structs::Context], :bool
+      attach_function :gpgme_get_progress_cb, [Structs::Context, :pointer, :pointer], :void
       attach_function :gpgme_hash_algo_name, [:uint], :string
       attach_function :gpgme_key_ref, [Structs::Key], :void
       attach_function :gpgme_key_release, [Structs::Key], :void
@@ -117,6 +121,7 @@ module Crypt
       attach_function :gpgme_set_locale, [Structs::Context, :int, :string], :uint
       attach_function :gpgme_set_offline, [Structs::Context, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [Structs::Context, :uint], :uint
+      attach_function :gpgme_set_progress_cb, [Structs::Context, :gpgme_progress_cb_t, :pointer], :void
       attach_function :gpgme_set_protocol, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_sender, [Structs::Context, :string], :uint
       attach_function :gpgme_set_textmode, [Structs::Context, :bool], :void

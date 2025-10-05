@@ -27,6 +27,7 @@ module Crypt
       def initialize
         @ctx = Structs::Context.new
         @released = false
+        @progress_callback = nil
         gpgme_check_version(nil)
         err = gpgme_new(@ctx)
 
@@ -403,6 +404,67 @@ module Crypt
         end
 
         address
+      end
+
+      # Sets a progress callback for monitoring long-running operations.
+      #
+      # The callback will be invoked periodically during operations that may
+      # take a long time (e.g., key generation, encryption of large files).
+      #
+      # @param callback [Proc, nil] a proc that receives progress updates, or nil to clear
+      #   The proc should accept 4 parameters:
+      #   - what [String]: description of the operation (e.g., "primegen", "keygen")
+      #   - type [Integer]: type of progress (operation-specific)
+      #   - current [Integer]: current progress value
+      #   - total [Integer]: total progress value (0 if unknown)
+      # @return [Proc, nil] the callback that was set
+      #
+      # @example Set a progress callback
+      #   ctx.set_progress_callback do |what, type, current, total|
+      #     if total > 0
+      #       percent = (current * 100.0 / total).to_i
+      #       puts "#{what}: #{percent}% (#{current}/#{total})"
+      #     else
+      #       puts "#{what}: #{current}"
+      #     end
+      #   end
+      #
+      # @example Clear the progress callback
+      #   ctx.set_progress_callback(nil)
+      def set_progress_callback(callback = nil, &block)
+        callback = block if block_given?
+
+        if callback.nil?
+          # Clear the callback
+          gpgme_set_progress_cb(@ctx.pointer, nil, nil)
+          @progress_callback = nil
+        else
+          # Store the callback to prevent garbage collection
+          @progress_callback = callback
+
+          # Create an FFI callback wrapper
+          ffi_callback = Proc.new do |opaque, what, type, current, total|
+            begin
+              callback.call(what, type, current, total)
+            rescue => e
+              warn "Progress callback error: #{e.message}"
+            end
+          end
+
+          gpgme_set_progress_cb(@ctx.pointer, ffi_callback, nil)
+        end
+
+        callback
+      end
+
+      # Gets the current progress callback.
+      #
+      # @return [Proc, nil] the current progress callback, or nil if not set
+      #
+      # @example
+      #   callback = ctx.progress_callback
+      def progress_callback
+        @progress_callback
       end
 
       # Signs data.

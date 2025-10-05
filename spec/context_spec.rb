@@ -261,6 +261,81 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  describe '#set_progress_callback' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_progress_callback)
+    end
+
+    example 'accepts a proc' do
+      callback = Proc.new { |what, type, current, total| }
+      expect { subject.set_progress_callback(callback) }.not_to raise_error
+    end
+
+    example 'accepts a block' do
+      expect do
+        subject.set_progress_callback do |what, type, current, total|
+          # Progress handling
+        end
+      end.not_to raise_error
+    end
+
+    example 'accepts nil to clear callback' do
+      subject.set_progress_callback { |what, type, current, total| }
+      expect { subject.set_progress_callback(nil) }.not_to raise_error
+    end
+
+    example 'returns the callback that was set' do
+      callback = Proc.new { |what, type, current, total| }
+      result = subject.set_progress_callback(callback)
+      expect(result).to eq(callback)
+    end
+
+    example 'returns nil when clearing callback' do
+      subject.set_progress_callback { |what, type, current, total| }
+      result = subject.set_progress_callback(nil)
+      expect(result).to be_nil
+    end
+
+    example 'stores the callback for later retrieval' do
+      callback = Proc.new { |what, type, current, total| }
+      subject.set_progress_callback(callback)
+      expect(subject.progress_callback).to eq(callback)
+    end
+
+    example 'clears the stored callback when set to nil' do
+      subject.set_progress_callback { |what, type, current, total| }
+      subject.set_progress_callback(nil)
+      expect(subject.progress_callback).to be_nil
+    end
+
+    example 'can update the callback' do
+      callback1 = Proc.new { |what, type, current, total| puts "First" }
+      callback2 = Proc.new { |what, type, current, total| puts "Second" }
+
+      subject.set_progress_callback(callback1)
+      expect(subject.progress_callback).to eq(callback1)
+
+      subject.set_progress_callback(callback2)
+      expect(subject.progress_callback).to eq(callback2)
+    end
+  end
+
+  describe '#progress_callback' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:progress_callback)
+    end
+
+    example 'returns nil by default' do
+      expect(subject.progress_callback).to be_nil
+    end
+
+    example 'returns the callback that was set' do
+      callback = Proc.new { |what, type, current, total| }
+      subject.set_progress_callback(callback)
+      expect(subject.progress_callback).to eq(callback)
+    end
+  end
+
   describe '#sign' do
     example 'basic functionality' do
       expect(subject).to respond_to(:sign)
