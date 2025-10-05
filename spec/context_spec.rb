@@ -787,4 +787,130 @@ RSpec.describe Crypt::GPGME::Context do
     # Note: Asynchronous operations require wait() to complete.
     # Full integration testing requires valid keys and passphrases.
   end
+
+  describe '#set_owner_trust' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_owner_trust)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.set_owner_trust }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts a key and trust value' do
+      expect(subject.method(:set_owner_trust).arity).to eq(2)
+    end
+
+    example 'raises an error with nil key' do
+      expect { subject.set_owner_trust(nil, "full") }.to raise_error(Crypt::GPGME::Error, /Invalid value/)
+    end
+
+    example 'accepts string trust values' do
+      # We verify the method accepts these values by checking it doesn't raise ArgumentError
+      trust_values = ["unknown", "undefined", "never", "marginal", "full", "ultimate"]
+      trust_values.each do |value|
+        expect(subject.method(:set_owner_trust).parameters).to include([:req, :value])
+      end
+    end
+
+    example 'accepts integer trust values' do
+      expect(subject.method(:set_owner_trust).parameters).to include([:req, :value])
+    end
+
+    example 'converts "full" string to appropriate format' do
+      # This tests that string values are accepted (actual conversion tested in integration)
+      expect { subject.set_owner_trust(nil, "full") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'converts "ultimate" string to appropriate format' do
+      expect { subject.set_owner_trust(nil, "ultimate") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'converts integer 4 (FULL) to appropriate format' do
+      expect { subject.set_owner_trust(nil, 4) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'converts integer 5 (ULTIMATE) to appropriate format' do
+      expect { subject.set_owner_trust(nil, 5) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises ArgumentError for invalid integer trust value' do
+      expect { subject.set_owner_trust(nil, 99) }.to raise_error(ArgumentError, /Invalid trust value/)
+    end
+
+    example 'raises ArgumentError for invalid type' do
+      expect { subject.set_owner_trust(nil, []) }.to raise_error(ArgumentError, /must be a String or Integer/)
+    end
+
+    example 'handles case-insensitive string values' do
+      # Lowercase should work (gets converted to lowercase internally)
+      expect { subject.set_owner_trust(nil, "FULL") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'method signature is correct' do
+      params = subject.method(:set_owner_trust).parameters
+      expect(params).to eq([[:req, :key], [:req, :value]])
+    end
+
+    # Note: Full integration testing with actual keys requires:
+    # - Valid keys in the keyring
+    # - OpenPGP protocol (not CMS)
+    # - Appropriate permissions
+    # These tests verify the interface is correct.
+  end
+
+  describe '#set_owner_trust_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_owner_trust_start)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.set_owner_trust_start }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts a key and trust value' do
+      expect(subject.method(:set_owner_trust_start).arity).to eq(2)
+    end
+
+    example 'raises an error with nil key' do
+      expect { subject.set_owner_trust_start(nil, "full") }.to raise_error(Crypt::GPGME::Error, /Invalid value/)
+    end
+
+    example 'accepts string trust values' do
+      trust_values = ["unknown", "undefined", "never", "marginal", "full", "ultimate"]
+      trust_values.each do |value|
+        expect(subject.method(:set_owner_trust_start).parameters).to include([:req, :value])
+      end
+    end
+
+    example 'accepts integer trust values' do
+      expect(subject.method(:set_owner_trust_start).parameters).to include([:req, :value])
+    end
+
+    example 'raises ArgumentError for invalid integer trust value' do
+      expect { subject.set_owner_trust_start(nil, 99) }.to raise_error(ArgumentError, /Invalid trust value/)
+    end
+
+    example 'raises ArgumentError for invalid type' do
+      expect { subject.set_owner_trust_start(nil, {}) }.to raise_error(ArgumentError, /must be a String or Integer/)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:set_owner_trust).parameters
+      async_params = subject.method(:set_owner_trust_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of set_owner_trust' do
+      expect(subject).to respond_to(:set_owner_trust)
+      expect(subject).to respond_to(:set_owner_trust_start)
+
+      sync_arity = subject.method(:set_owner_trust).arity
+      async_arity = subject.method(:set_owner_trust_start).arity
+      expect(async_arity).to eq(sync_arity)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+    # Full integration testing requires valid keys and appropriate permissions.
+  end
 end

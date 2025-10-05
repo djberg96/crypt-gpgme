@@ -108,6 +108,8 @@ module Crypt
       attach_function :gpgme_op_set_uid_flag_start, [Structs::Context, Structs::Key, :string, :string, :string], :uint
       attach_function :gpgme_op_setexpire, [Structs::Context, Structs::Key, :ulong, :string, :uint], :gpgme_error_t
       attach_function :gpgme_op_setexpire_start, [Structs::Context, Structs::Key, :ulong, :string, :uint], :gpgme_error_t
+      attach_function :gpgme_op_setownertrust, [Structs::Context, Structs::Key, :string], :gpgme_error_t
+      attach_function :gpgme_op_setownertrust_start, [Structs::Context, Structs::Key, :string], :gpgme_error_t
       attach_function :gpgme_op_sign, [Structs::Context, :pointer, :pointer, :uint], :uint
       attach_function :gpgme_op_sign_result, [Structs::Context], :uint
       attach_function :gpgme_op_sign_start, [Structs::Context, :pointer, :pointer, :uint], :uint

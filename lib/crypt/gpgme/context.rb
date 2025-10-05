@@ -844,6 +844,121 @@ module Crypt
 
         nil
       end
+
+      # Sets the owner trust for a key (synchronous).
+      #
+      # This method changes the owner trust level of an OpenPGP key. Owner trust
+      # indicates how much you trust the key owner to properly verify other keys.
+      # This is different from key validity - owner trust is your personal assessment
+      # of the key owner's trustworthiness as a key certifier.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param value [String, Integer] the trust value, either:
+      #   - A string: "unknown", "undefined", "never", "marginal", "full", or "ultimate"
+      #   - An integer: 0-5 corresponding to GPGME_VALIDITY_* constants
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Set owner trust to full
+      #   key = ctx.list_keys("user@example.com").first
+      #   ctx.set_owner_trust(key, "full")
+      #
+      # @example Set owner trust to ultimate
+      #   ctx.set_owner_trust(key, "ultimate")
+      #
+      # @example Set owner trust using integer constant
+      #   ctx.set_owner_trust(key, GPGME_VALIDITY_FULL)
+      #
+      # @note This operation is OpenPGP-specific
+      # @note This operation requires appropriate permissions
+      # @note Owner trust levels:
+      #   - "unknown" (0): Unknown trust
+      #   - "undefined" (1): Undefined trust
+      #   - "never" (2): Never trust this key owner to certify keys
+      #   - "marginal" (3): Marginally trust this key owner
+      #   - "full" (4): Fully trust this key owner to certify keys
+      #   - "ultimate" (5): Ultimate trust (typically for your own keys)
+      def set_owner_trust(key, value)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+
+        # Convert value to string format expected by GPGME
+        value_str = case value
+                    when String
+                      value.downcase
+                    when Integer
+                      case value
+                      when 0, GPGME_VALIDITY_UNKNOWN then "unknown"
+                      when 1, GPGME_VALIDITY_UNDEFINED then "undefined"
+                      when 2, GPGME_VALIDITY_NEVER then "never"
+                      when 3, GPGME_VALIDITY_MARGINAL then "marginal"
+                      when 4, GPGME_VALIDITY_FULL then "full"
+                      when 5, GPGME_VALIDITY_ULTIMATE then "ultimate"
+                      else
+                        raise ArgumentError, "Invalid trust value: #{value}. Must be 0-5."
+                      end
+                    else
+                      raise ArgumentError, "Value must be a String or Integer, got #{value.class}"
+                    end
+
+        err = gpgme_op_setownertrust(@ctx.pointer, key_struct, value_str)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setownertrust failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Sets the owner trust for a key (asynchronous).
+      #
+      # This is the asynchronous version of {#set_owner_trust}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param value [String, Integer] the trust value (see {#set_owner_trust} for valid values)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Set owner trust asynchronously
+      #   key = ctx.list_keys("user@example.com").first
+      #   ctx.set_owner_trust_start(key, "full")
+      #   ctx.wait
+      #
+      # @note This operation is OpenPGP-specific
+      # @see #set_owner_trust for trust level descriptions
+      def set_owner_trust_start(key, value)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+
+        # Convert value to string format expected by GPGME
+        value_str = case value
+                    when String
+                      value.downcase
+                    when Integer
+                      case value
+                      when 0, GPGME_VALIDITY_UNKNOWN then "unknown"
+                      when 1, GPGME_VALIDITY_UNDEFINED then "undefined"
+                      when 2, GPGME_VALIDITY_NEVER then "never"
+                      when 3, GPGME_VALIDITY_MARGINAL then "marginal"
+                      when 4, GPGME_VALIDITY_FULL then "full"
+                      when 5, GPGME_VALIDITY_ULTIMATE then "ultimate"
+                      else
+                        raise ArgumentError, "Invalid trust value: #{value}. Must be 0-5."
+                      end
+                    else
+                      raise ArgumentError, "Value must be a String or Integer, got #{value.class}"
+                    end
+
+        err = gpgme_op_setownertrust_start(@ctx.pointer, key_struct, value_str)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setownertrust_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end
