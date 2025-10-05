@@ -959,6 +959,223 @@ module Crypt
 
         nil
       end
+
+      # Creates a new primary key (synchronous).
+      #
+      # This method creates a new OpenPGP primary key with the specified user ID
+      # and algorithm. This is the modern interface for key creation.
+      #
+      # @param userid [String] the user ID for the new key (e.g., "Name <email@example.com>")
+      # @param algo [String, nil] the algorithm specification (e.g., "rsa2048", "ed25519", "future-default")
+      #   If nil, uses "future-default"
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @param expires [Integer] expiration time in seconds from now, or 0 for no expiration
+      # @param certkey [Crypt::GPGME::Key, Structs::Key, nil] optional certification key (for subkey creation)
+      # @param flags [Integer] creation flags (bitwise OR of GPGME_CREATE_* constants)
+      # @return [Hash] a hash containing key creation result information
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Create a basic RSA key
+      #   result = ctx.create_key("Alice <alice@example.com>", "rsa2048")
+      #
+      # @example Create an Ed25519 key
+      #   result = ctx.create_key("Bob <bob@example.com>", "ed25519")
+      #
+      # @example Create key with specific capabilities
+      #   flags = GPGME_CREATE_SIGN | GPGME_CREATE_ENCR
+      #   result = ctx.create_key("Carol <carol@example.com>", "rsa2048", 0, 0, nil, flags)
+      #
+      # @example Create key that doesn't expire
+      #   flags = GPGME_CREATE_NOEXPIRE
+      #   result = ctx.create_key("Dave <dave@example.com>", "rsa2048", 0, 0, nil, flags)
+      #
+      # @note This operation requires passphrase entry via pinentry (unless GPGME_CREATE_NOPASSWD flag is set)
+      # @note Common algorithms: "rsa2048", "rsa3072", "rsa4096", "ed25519", "cv25519", "future-default"
+      # @note Default flags enable signing and certification
+      def create_key(userid, algo = nil, reserved = 0, expires = 0, certkey = nil, flags = 0)
+        algo ||= "future-default"
+        certkey_struct = if certkey
+                           certkey.is_a?(Structs::Key) ? certkey : certkey.instance_variable_get(:@key)
+                         else
+                           nil
+                         end
+
+        err = gpgme_op_createkey(@ctx.pointer, userid, algo, reserved, expires, certkey_struct, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_createkey failed: #{errstr}"
+        end
+
+        # Get the result
+        result_ptr = gpgme_op_genkey_result(@ctx.pointer)
+        if result_ptr.null?
+          return {}
+        end
+
+        # Parse the result structure
+        result = {}
+        result[:fpr] = result_ptr.read_pointer.read_string unless result_ptr.read_pointer.null?
+        result
+      end
+
+      # Creates a new primary key (asynchronous).
+      #
+      # This is the asynchronous version of {#create_key}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param userid [String] the user ID for the new key
+      # @param algo [String, nil] the algorithm specification
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @param expires [Integer] expiration time in seconds from now, or 0 for no expiration
+      # @param certkey [Crypt::GPGME::Key, Structs::Key, nil] optional certification key
+      # @param flags [Integer] creation flags
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Create key asynchronously
+      #   ctx.create_key_start("Alice <alice@example.com>", "rsa2048")
+      #   ctx.wait
+      #   result = ctx.get_genkey_result
+      #
+      # @see #create_key for parameter descriptions and examples
+      def create_key_start(userid, algo = nil, reserved = 0, expires = 0, certkey = nil, flags = 0)
+        algo ||= "future-default"
+        certkey_struct = if certkey
+                           certkey.is_a?(Structs::Key) ? certkey : certkey.instance_variable_get(:@key)
+                         else
+                           nil
+                         end
+
+        err = gpgme_op_createkey_start(@ctx.pointer, userid, algo, reserved, expires, certkey_struct, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_createkey_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Creates a new subkey for an existing key (synchronous).
+      #
+      # This method creates a new subkey (e.g., encryption subkey, signing subkey)
+      # for an existing primary key. Subkeys allow different cryptographic operations
+      # and can have different expiration times.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the primary key to add a subkey to
+      # @param algo [String, nil] the algorithm specification (e.g., "rsa2048", "ed25519")
+      #   If nil, uses "future-default"
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @param expires [Integer] expiration time in seconds from now, or 0 for no expiration
+      # @param flags [Integer] creation flags (bitwise OR of GPGME_CREATE_* constants)
+      # @return [Hash] a hash containing subkey creation result information
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Create an encryption subkey
+      #   key = ctx.list_keys("alice@example.com").first
+      #   flags = GPGME_CREATE_ENCR
+      #   result = ctx.create_subkey(key, "rsa2048", 0, 0, flags)
+      #
+      # @example Create a signing subkey
+      #   flags = GPGME_CREATE_SIGN
+      #   result = ctx.create_subkey(key, "ed25519", 0, 0, flags)
+      #
+      # @example Create subkey that expires in 1 year
+      #   one_year = 365 * 24 * 60 * 60
+      #   flags = GPGME_CREATE_ENCR
+      #   result = ctx.create_subkey(key, "rsa2048", 0, one_year, flags)
+      #
+      # @note This operation requires the primary key's passphrase
+      # @note You must specify at least one capability flag (SIGN, ENCR, CERT, or AUTH)
+      # @note Common use cases: add encryption subkey to signing-only key, add subkeys with different expirations
+      def create_subkey(key, algo = nil, reserved = 0, expires = 0, flags = 0)
+        algo ||= "future-default"
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+
+        err = gpgme_op_createsubkey(@ctx.pointer, key_struct, algo, reserved, expires, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_createsubkey failed: #{errstr}"
+        end
+
+        # Get the result
+        result_ptr = gpgme_op_genkey_result(@ctx.pointer)
+        if result_ptr.null?
+          return {}
+        end
+
+        # Parse the result structure
+        result = {}
+        result[:fpr] = result_ptr.read_pointer.read_string unless result_ptr.read_pointer.null?
+        result
+      end
+
+      # Creates a new subkey for an existing key (asynchronous).
+      #
+      # This is the asynchronous version of {#create_subkey}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the primary key to add a subkey to
+      # @param algo [String, nil] the algorithm specification
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @param expires [Integer] expiration time in seconds from now, or 0 for no expiration
+      # @param flags [Integer] creation flags
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Create subkey asynchronously
+      #   key = ctx.list_keys("alice@example.com").first
+      #   flags = GPGME_CREATE_ENCR
+      #   ctx.create_subkey_start(key, "rsa2048", 0, 0, flags)
+      #   ctx.wait
+      #   result = ctx.get_genkey_result
+      #
+      # @see #create_subkey for parameter descriptions and examples
+      def create_subkey_start(key, algo = nil, reserved = 0, expires = 0, flags = 0)
+        algo ||= "future-default"
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+
+        err = gpgme_op_createsubkey_start(@ctx.pointer, key_struct, algo, reserved, expires, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_createsubkey_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Retrieves the result of a key generation operation.
+      #
+      # This method returns the result of the most recent genkey, createkey, or
+      # createsubkey operation. It should be called after the operation completes.
+      #
+      # @return [Hash] a hash containing result information:
+      #   - :fpr [String] the fingerprint of the generated key/subkey
+      #
+      # @example Get result after synchronous operation
+      #   ctx.create_key("Alice <alice@example.com>", "rsa2048")
+      #   result = ctx.get_genkey_result
+      #   puts "Generated key: #{result[:fpr]}"
+      #
+      # @example Get result after asynchronous operation
+      #   ctx.create_key_start("Bob <bob@example.com>", "ed25519")
+      #   ctx.wait
+      #   result = ctx.get_genkey_result
+      #
+      # @note Returns an empty hash if no result is available
+      def get_genkey_result
+        result_ptr = gpgme_op_genkey_result(@ctx.pointer)
+        return {} if result_ptr.null?
+
+        result = {}
+        result[:fpr] = result_ptr.read_pointer.read_string unless result_ptr.read_pointer.null?
+        result
+      end
     end
   end
 end

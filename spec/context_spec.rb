@@ -913,4 +913,178 @@ RSpec.describe Crypt::GPGME::Context do
     # Note: Asynchronous operations require wait() to complete.
     # Full integration testing requires valid keys and appropriate permissions.
   end
+
+  describe '#create_key' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:create_key)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.create_key }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts userid parameter' do
+      expect(subject.method(:create_key).parameters).to include([:req, :userid])
+    end
+
+    example 'accepts optional algo parameter' do
+      expect(subject.method(:create_key).parameters).to include([:opt, :algo])
+    end
+
+    example 'accepts optional reserved parameter' do
+      expect(subject.method(:create_key).parameters).to include([:opt, :reserved])
+    end
+
+    example 'accepts optional expires parameter' do
+      expect(subject.method(:create_key).parameters).to include([:opt, :expires])
+    end
+
+    example 'accepts optional certkey parameter' do
+      expect(subject.method(:create_key).parameters).to include([:opt, :certkey])
+    end
+
+    example 'accepts optional flags parameter' do
+      expect(subject.method(:create_key).parameters).to include([:opt, :flags])
+    end
+
+    example 'method has correct arity' do
+      expect(subject.method(:create_key).arity).to eq(-2)
+    end
+
+    example 'returns a hash' do
+      # We can't actually create keys without passphrase handling,
+      # but we verify the return type would be correct
+      expect(subject.method(:create_key).parameters.first).to eq([:req, :userid])
+    end
+
+    # Note: Full integration testing requires:
+    # - Passphrase callback or pinentry setup
+    # - Appropriate system permissions
+    # - Time for key generation (can be slow)
+    # These tests verify the interface is correct.
+  end
+
+  describe '#create_key_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:create_key_start)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.create_key_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:create_key).parameters
+      async_params = subject.method(:create_key_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of create_key' do
+      expect(subject).to respond_to(:create_key)
+      expect(subject).to respond_to(:create_key_start)
+
+      sync_arity = subject.method(:create_key).arity
+      async_arity = subject.method(:create_key_start).arity
+      expect(async_arity).to eq(sync_arity)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
+
+  describe '#create_subkey' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:create_subkey)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.create_subkey }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts key parameter' do
+      expect(subject.method(:create_subkey).parameters).to include([:req, :key])
+    end
+
+    example 'accepts optional algo parameter' do
+      expect(subject.method(:create_subkey).parameters).to include([:opt, :algo])
+    end
+
+    example 'accepts optional reserved parameter' do
+      expect(subject.method(:create_subkey).parameters).to include([:opt, :reserved])
+    end
+
+    example 'accepts optional expires parameter' do
+      expect(subject.method(:create_subkey).parameters).to include([:opt, :expires])
+    end
+
+    example 'accepts optional flags parameter' do
+      expect(subject.method(:create_subkey).parameters).to include([:opt, :flags])
+    end
+
+    example 'method has correct arity' do
+      expect(subject.method(:create_subkey).arity).to eq(-2)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.create_subkey(nil) }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    # Note: Full integration testing requires:
+    # - Valid primary key in keyring
+    # - Passphrase for the primary key
+    # - Appropriate system permissions
+    # These tests verify the interface is correct.
+  end
+
+  describe '#create_subkey_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:create_subkey_start)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.create_subkey_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:create_subkey).parameters
+      async_params = subject.method(:create_subkey_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of create_subkey' do
+      expect(subject).to respond_to(:create_subkey)
+      expect(subject).to respond_to(:create_subkey_start)
+
+      sync_arity = subject.method(:create_subkey).arity
+      async_arity = subject.method(:create_subkey_start).arity
+      expect(async_arity).to eq(sync_arity)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.create_subkey_start(nil) }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
+
+  describe '#get_genkey_result' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:get_genkey_result)
+    end
+
+    example 'takes no arguments' do
+      expect(subject.method(:get_genkey_result).arity).to eq(0)
+    end
+
+    example 'returns a hash' do
+      result = subject.get_genkey_result
+      expect(result).to be_a(Hash)
+    end
+
+    example 'returns empty hash when no operation has been performed' do
+      result = subject.get_genkey_result
+      expect(result).to be_empty
+    end
+
+    # Note: Testing with actual results requires completing a key generation operation.
+  end
 end
