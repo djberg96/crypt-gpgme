@@ -705,11 +705,15 @@ module Crypt
       # @param pattern [String, Array<String>, Crypt::GPGME::Data, Crypt::GPGME::Structs::Data, nil] pattern(s) to match keys against, or nil for all keys
       #   Can be a single string pattern, an array of string patterns, or a Data object containing key data
       # @param secret [Integer] 0 for public keys, 1 for secret keys (ignored when pattern is a Data object)
-      # @return [Array<Hash>] array of key hashes
+      # @param format [Symbol] :hash to return key hashes (default), :object to return Key structs
+      # @return [Array<Hash>, Array<Structs::Key>] array of key hashes or Key struct objects depending on format parameter
       # @raise [Crypt::GPGME::Error] if the keylist operation fails
       #
-      # @example List all keys
+      # @example List all keys as hashes
       #   keys = ctx.list_keys
+      #
+      # @example List all keys as objects
+      #   keys = ctx.list_keys(nil, 0, :object)
       #
       # @example List keys matching a pattern
       #   keys = ctx.list_keys("alice@example.com")
@@ -726,7 +730,12 @@ module Crypt
       #
       # @example List secret keys for specific users
       #   keys = ctx.list_keys(["alice@example.com", "bob@example.com"], 1)
-      def list_keys(pattern = nil, secret = 0)
+      #
+      # @example List keys as objects for use with export_keys_by_object
+      #   keys = ctx.list_keys("alice@example.com", 0, :object)
+      #   keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      #   ctx.export_keys_by_object(keys, keydata)
+      def list_keys(pattern = nil, secret = 0, format = :hash)
         if pattern.is_a?(Data) || pattern.is_a?(Structs::Data)
           # Use gpgme_op_keylist_from_data_start for data objects
           data_ptr = pattern.is_a?(Data) ? pattern.instance_variable_get(:@data).pointer : pattern.pointer
@@ -760,8 +769,13 @@ module Crypt
           err = gpgme_op_keylist_next(@ctx.pointer, key_ptr)
           break if err != GPG_ERR_NO_ERROR
           key = Structs::Key.new(key_ptr.read_pointer)
-          arr << key.to_hash
-          gpgme_key_unref(key)
+
+          if format == :object
+            arr << key
+          else
+            arr << key.to_hash
+            gpgme_key_unref(key)
+          end
         end
 
         err = gpgme_op_keylist_end(@ctx.pointer)
@@ -1707,6 +1721,207 @@ module Crypt
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_op_revsig_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Exports public keys to a data buffer (synchronous).
+      #
+      # This method exports one or more public keys in ASCII-armored format.
+      # You can export by pattern (email, name, fingerprint) or export all keys.
+      #
+      # @param pattern [String, nil] search pattern for keys to export (nil exports all keys)
+      # @param keydata [Data] Data object to receive the exported keys
+      # @param mode [Integer] export mode flags (combination of GPGME_EXPORT_MODE_* constants)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Export a specific key by email
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys("alice@example.com", keydata)
+      #   exported = keydata.read
+      #   File.write("alice_public.asc", exported)
+      #
+      # @example Export all public keys
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys(nil, keydata)
+      #   all_keys = keydata.read
+      #
+      # @example Export in minimal format (without signatures)
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys("bob@example.com", keydata, Crypt::GPGME::GPGME_EXPORT_MODE_MINIMAL)
+      #
+      # @example Export secret key
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys("alice@example.com", keydata, Crypt::GPGME::GPGME_EXPORT_MODE_SECRET)
+      #   secret_key = keydata.read
+      #
+      # @example Export to SSH format
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys("alice@example.com", keydata, Crypt::GPGME::GPGME_EXPORT_MODE_SSH)
+      #   ssh_key = keydata.read
+      #
+      # @note The pattern can be an email, name, key ID, or fingerprint
+      # @note Use mode 0 for standard public key export
+      # @note Secret key export requires the key's passphrase
+      # @note SSH export mode is available in newer GPGME versions
+      # @see https://www.gnupg.org/documentation/manuals/gpgme/Exporting-Keys.html
+      def export_keys(pattern, keydata, mode = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
+
+        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        err = gpgme_op_export(@ctx.pointer, pattern, mode, data_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_export failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Exports public keys to a data buffer (asynchronous).
+      #
+      # This is the asynchronous version of {#export_keys}. It initiates the
+      # export operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param pattern [String, nil] search pattern for keys to export (nil exports all keys)
+      # @param keydata [Data] Data object to receive the exported keys
+      # @param mode [Integer] export mode flags (combination of GPGME_EXPORT_MODE_* constants)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Export keys asynchronously
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys_start("alice@example.com", keydata)
+      #   ctx.wait
+      #   exported = keydata.read
+      #
+      # @note Use {#wait} to complete the operation
+      def export_keys_start(pattern, keydata, mode = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
+
+        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        err = gpgme_op_export_start(@ctx.pointer, pattern, mode, data_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_export_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Exports keys by key objects (synchronous).
+      #
+      # This method exports specific keys provided as an array of Key objects.
+      # More precise than pattern-based export when you already have Key objects.
+      #
+      # @param keys [Array<Key, Structs::Key>] array of keys to export
+      # @param keydata [Data] Data object to receive the exported keys
+      # @param mode [Integer] export mode flags (combination of GPGME_EXPORT_MODE_* constants)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Export specific keys by object
+      #   keys = ctx.list_keys("alice@example.com")
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys_by_object(keys, keydata)
+      #   exported = keydata.read
+      #
+      # @example Export multiple keys
+      #   alice_keys = ctx.list_keys("alice@example.com")
+      #   bob_keys = ctx.list_keys("bob@example.com")
+      #   all_keys = alice_keys + bob_keys
+      #
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys_by_object(all_keys, keydata)
+      #
+      # @example Export with minimal format
+      #   keys = ctx.list_keys("alice@example.com")
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys_by_object(keys, keydata, Crypt::GPGME::GPGME_EXPORT_MODE_MINIMAL)
+      #
+      # @note The keys array must not be empty
+      # @note Keys must exist in the keyring
+      # @note More efficient than pattern matching when you have Key objects
+      def export_keys_by_object(keys, keydata, mode = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "keys cannot be nil" if keys.nil?
+        raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
+        raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
+
+        # Convert keys to array of structs and create NULL-terminated array
+        key_structs = keys.map do |key|
+          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        end
+
+        # Create a pointer array with NULL terminator
+        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
+        key_structs.each_with_index do |key_struct, i|
+          key_array[i].put_pointer(0, key_struct)
+        end
+        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
+
+        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        err = gpgme_op_export_keys(@ctx.pointer, key_array, mode, data_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_export_keys failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Exports keys by key objects (asynchronous).
+      #
+      # This is the asynchronous version of {#export_keys_by_object}. It initiates
+      # the export operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param keys [Array<Key, Structs::Key>] array of keys to export
+      # @param keydata [Data] Data object to receive the exported keys
+      # @param mode [Integer] export mode flags (combination of GPGME_EXPORT_MODE_* constants)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Export keys asynchronously
+      #   keys = ctx.list_keys("alice@example.com")
+      #   keydata = Crypt::GPGME::Data.new
+      #   ctx.export_keys_by_object_start(keys, keydata)
+      #   ctx.wait
+      #   exported = keydata.read
+      #
+      # @note Use {#wait} to complete the operation
+      def export_keys_by_object_start(keys, keydata, mode = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "keys cannot be nil" if keys.nil?
+        raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
+        raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
+
+        # Convert keys to array of structs and create NULL-terminated array
+        key_structs = keys.map do |key|
+          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        end
+
+        # Create a pointer array with NULL terminator
+        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
+        key_structs.each_with_index do |key_struct, i|
+          key_array[i].put_pointer(0, key_struct)
+        end
+        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
+
+        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        err = gpgme_op_export_keys_start(@ctx.pointer, key_array, mode, data_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_export_keys_start failed: #{errstr}"
         end
 
         nil

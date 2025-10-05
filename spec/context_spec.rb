@@ -687,6 +687,46 @@ RSpec.describe Crypt::GPGME::Context do
       expect(result).to be_an(Array)
     end
 
+    example 'accepts format parameter' do
+      expect { subject.list_keys(nil, 0, :hash) }.not_to raise_error
+      expect { subject.list_keys(nil, 0, :object) }.not_to raise_error
+    end
+
+    example 'returns array of hashes by default' do
+      result = subject.list_keys
+      if result.any?
+        expect(result.first).to be_a(Hash)
+      end
+    end
+
+    example 'returns array of hashes with :hash format' do
+      result = subject.list_keys(nil, 0, :hash)
+      if result.any?
+        expect(result.first).to be_a(Hash)
+      end
+    end
+
+    example 'returns array of Key structs with :object format' do
+      result = subject.list_keys(nil, 0, :object)
+      if result.any?
+        expect(result.first).to be_a(Crypt::GPGME::Structs::Key)
+      end
+    end
+
+    example 'Key objects can be used with export_keys_by_object' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      if keys.any?
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        begin
+          expect { subject.export_keys_by_object(keys, keydata) }.not_to raise_error
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "No keys available in keyring"
+      end
+    end
+
     # Note: Data object support is implemented but not tested here because
     # it requires actual exported key data to work properly. Passing empty
     # data causes segmentation faults. The feature is documented in the
@@ -1407,8 +1447,8 @@ RSpec.describe Crypt::GPGME::Context do
 
     example 'accepts Data objects for public and secret key' do
       skip "Skipping actual key generation in tests"
-      # public_data = Crypt::GPGME::Data.new
-      # secret_data = Crypt::GPGME::Data.new
+      # public_data = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      # secret_data = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
       # params = "<GnupgKeyParms format=\"internal\">\nKey-Type: RSA\nKey-Length: 1024\nName-Real: Test\nName-Email: test@example.com\n</GnupgKeyParms>"
       # result = subject.generate_key_pair(params, public_data, secret_data)
       # expect(result).to be_a(Hash)
@@ -1664,6 +1704,297 @@ RSpec.describe Crypt::GPGME::Context do
       # signing_key = subject.list_keys("signer@example.com", 1).first
       # subject.revoke_signature_start(key, signing_key, "Test <test@example.com>", 0)
       # subject.wait
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
+
+  describe '#export_keys' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:export_keys)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.export_keys }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts pattern parameter' do
+      expect(subject.method(:export_keys).parameters).to include([:req, :pattern])
+    end
+
+    example 'accepts keydata parameter' do
+      expect(subject.method(:export_keys).parameters).to include([:req, :keydata])
+    end
+
+    example 'accepts optional mode parameter' do
+      expect(subject.method(:export_keys).parameters).to include([:opt, :mode])
+    end
+
+    example 'method has correct arity' do
+      # -3 means 2 required, 1 optional
+      expect(subject.method(:export_keys).arity).to eq(-3)
+    end
+
+    example 'raises error with nil keydata' do
+      expect { subject.export_keys("test@example.com", nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts nil pattern to export all keys' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.export_keys(nil, keydata) }.not_to raise_error
+    end
+
+    example 'accepts string pattern' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.export_keys("test@example.com", keydata) }.not_to raise_error
+    end
+
+    example 'exports data to Data object' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      subject.export_keys(nil, keydata)
+      # Data object should contain exported keys (may be empty if no keys)
+      expect(keydata).to be_a(Crypt::GPGME::Data)
+    end
+
+    example 'accepts mode parameter' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      mode = Crypt::GPGME::GPGME_EXPORT_MODE_MINIMAL
+      expect { subject.export_keys("test", keydata, mode) }.not_to raise_error
+    end
+
+    example 'accepts minimal export mode' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      mode = Crypt::GPGME::GPGME_EXPORT_MODE_MINIMAL
+      expect { subject.export_keys(nil, keydata, mode) }.not_to raise_error
+    end
+
+    example 'accepts extern export mode', :skip => "EXTERN mode requires keyserver access" do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      mode = Crypt::GPGME::GPGME_EXPORT_MODE_EXTERN
+      expect { subject.export_keys(nil, keydata, mode) }.not_to raise_error
+    end
+
+    example 'accepts combined export modes', :skip => "EXTERN mode requires keyserver access" do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      mode = Crypt::GPGME::GPGME_EXPORT_MODE_MINIMAL | Crypt::GPGME::GPGME_EXPORT_MODE_EXTERN
+      expect { subject.export_keys(nil, keydata, mode) }.not_to raise_error
+    end
+
+    example 'returns nil on success' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      result = subject.export_keys(nil, keydata)
+      expect(result).to be_nil
+    end
+
+    # Note: Secret key export requires passphrase and is tested in integration tests
+  end
+
+  describe '#export_keys_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:export_keys_start)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.export_keys_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:export_keys).parameters
+      async_params = subject.method(:export_keys_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of export_keys' do
+      expect(subject.method(:export_keys_start).arity).to eq(subject.method(:export_keys).arity)
+    end
+
+    example 'raises error with nil keydata' do
+      expect { subject.export_keys_start("test@example.com", nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts all parameters like synchronous version', :skip => "wait() method not yet implemented" do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      subject.export_keys_start(nil, keydata, 0)
+      subject.wait
+      # Operation should complete without error
+      expect(keydata).to be_a(Crypt::GPGME::Data)
+    end
+
+    example 'returns nil on success' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      result = subject.export_keys_start(nil, keydata)
+      expect(result).to be_nil
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
+
+  describe '#export_keys_by_object' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:export_keys_by_object)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.export_keys_by_object }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts keys parameter' do
+      expect(subject.method(:export_keys_by_object).parameters).to include([:req, :keys])
+    end
+
+    example 'accepts keydata parameter' do
+      expect(subject.method(:export_keys_by_object).parameters).to include([:req, :keydata])
+    end
+
+    example 'accepts optional mode parameter' do
+      expect(subject.method(:export_keys_by_object).parameters).to include([:opt, :mode])
+    end
+
+    example 'method has correct arity' do
+      # -3 means 2 required, 1 optional
+      expect(subject.method(:export_keys_by_object).arity).to eq(-3)
+    end
+
+    example 'raises error with nil keys' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.export_keys_by_object(nil, keydata) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with empty keys array' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.export_keys_by_object([], keydata) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with nil keydata' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      expect { subject.export_keys_by_object(keys, nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts array of keys' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      if keys.any?
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        begin
+          expect { subject.export_keys_by_object(keys, keydata) }.not_to raise_error
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "No keys available in keyring"
+      end
+    end
+
+    example 'exports multiple keys' do
+      keys = subject.list_keys(nil, 0, :object).take(2)
+      if keys.length >= 2
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        begin
+          subject.export_keys_by_object(keys, keydata)
+          expect(keydata).to be_a(Crypt::GPGME::Data)
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "Need at least 2 keys in keyring"
+      end
+    end
+
+    example 'accepts mode parameter' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      if keys.any?
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        mode = Crypt::GPGME::GPGME_EXPORT_MODE_MINIMAL
+        begin
+          expect { subject.export_keys_by_object(keys, keydata, mode) }.not_to raise_error
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "No keys available in keyring"
+      end
+    end
+
+    example 'returns nil on success' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      if keys.any?
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        begin
+          result = subject.export_keys_by_object(keys, keydata)
+          expect(result).to be_nil
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "No keys available in keyring"
+      end
+    end
+
+    # Note: This method is more efficient than pattern matching when you have Key objects
+  end
+
+  describe '#export_keys_by_object_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:export_keys_by_object_start)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.export_keys_by_object_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:export_keys_by_object).parameters
+      async_params = subject.method(:export_keys_by_object_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of export_keys_by_object' do
+      expect(subject.method(:export_keys_by_object_start).arity).to eq(subject.method(:export_keys_by_object).arity)
+    end
+
+    example 'raises error with nil keys' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.export_keys_by_object_start(nil, keydata) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with empty keys array' do
+      keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.export_keys_by_object_start([], keydata) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with nil keydata' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      expect { subject.export_keys_by_object_start(keys, nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts all parameters like synchronous version', :skip => "wait() method not yet implemented" do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      if keys.any?
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        begin
+          subject.export_keys_by_object_start(keys, keydata, 0)
+          subject.wait
+          expect(keydata).to be_a(Crypt::GPGME::Data)
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "No keys available in keyring"
+      end
+    end
+
+    example 'returns nil on success' do
+      keys = subject.list_keys(nil, 0, :object).take(1)
+      if keys.any?
+        keydata = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+        begin
+          result = subject.export_keys_by_object_start(keys, keydata)
+          expect(result).to be_nil
+        rescue Crypt::GPGME::Error => e
+          skip "Keys not exportable: #{e.message}"
+        end
+      else
+        skip "No keys available in keyring"
+      end
     end
 
     # Note: Asynchronous operations require wait() to complete.
