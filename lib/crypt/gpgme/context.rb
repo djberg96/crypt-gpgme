@@ -1375,6 +1375,150 @@ module Crypt
 
         nil
       end
+
+      # Generates a complete key pair with optional subkeys using XML parameters (synchronous).
+      #
+      # This method generates a complete OpenPGP key pair (primary key + subkeys) using
+      # XML-formatted parameters. This is more flexible than {#create_key} and allows
+      # specifying detailed key generation parameters in a single operation.
+      #
+      # @param params [String] XML string describing the key parameters
+      # @param public_key [Data, nil] optional Data object to receive the public key
+      # @param secret_key [Data, nil] optional Data object to receive the secret key
+      # @return [Hash] a hash containing result information:
+      #   - :fpr [String] the fingerprint of the generated primary key
+      #   - :primary [Boolean] whether a primary key was generated
+      #   - :sub [Boolean] whether a subkey was generated
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Generate a basic RSA key pair
+      #   params = <<~XML
+      #     <GnupgKeyParms format="internal">
+      #       Key-Type: RSA
+      #       Key-Length: 2048
+      #       Subkey-Type: RSA
+      #       Subkey-Length: 2048
+      #       Name-Real: Alice Smith
+      #       Name-Email: alice@example.com
+      #       Expire-Date: 0
+      #     </GnupgKeyParms>
+      #   XML
+      #   result = ctx.generate_key_pair(params)
+      #   puts "Generated key: #{result[:fpr]}"
+      #
+      # @example Generate an EdDSA key pair with passphrase
+      #   params = <<~XML
+      #     <GnupgKeyParms format="internal">
+      #       Key-Type: EdDSA
+      #       Key-Curve: Ed25519
+      #       Subkey-Type: ECDH
+      #       Subkey-Curve: Cv25519
+      #       Name-Real: Bob Jones
+      #       Name-Email: bob@example.com
+      #       Passphrase: my-secret-passphrase
+      #       Expire-Date: 1y
+      #     </GnupgKeyParms>
+      #   XML
+      #   result = ctx.generate_key_pair(params)
+      #
+      # @example Generate key and capture output
+      #   public_data = Crypt::GPGME::Data.new
+      #   secret_data = Crypt::GPGME::Data.new
+      #   result = ctx.generate_key_pair(params, public_data, secret_data)
+      #
+      #   public_key_text = public_data.read
+      #   secret_key_text = secret_data.read
+      #
+      # @note This operation may take some time depending on key size and system entropy
+      # @note The XML format is documented in the GPGME manual
+      # @note Without a passphrase in the XML, the key will be generated without protection
+      # @see https://www.gnupg.org/documentation/manuals/gpgme/Generating-Keys.html
+      def generate_key_pair(params, public_key = nil, secret_key = nil)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "params cannot be nil" if params.nil?
+        raise Crypt::GPGME::Error, "params cannot be empty" if params.to_s.empty?
+
+        pub_ptr = public_key ? (public_key.is_a?(Data) ? public_key.instance_variable_get(:@data).pointer : public_key.pointer) : nil
+        sec_ptr = secret_key ? (secret_key.is_a?(Data) ? secret_key.instance_variable_get(:@data).pointer : secret_key.pointer) : nil
+
+        err = gpgme_op_genkey(@ctx.pointer, params, pub_ptr, sec_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_genkey failed: #{errstr}"
+        end
+
+        # Get the result
+        result_ptr = gpgme_op_genkey_result(@ctx.pointer)
+        if result_ptr.null?
+          return {}
+        end
+
+        # Parse the result structure
+        # typedef struct {
+        #   unsigned int primary : 1;
+        #   unsigned int sub : 1;
+        #   char *fpr;
+        # } gpgme_genkey_result_t;
+        result = {}
+
+        # Read the bitfield flags (first 4 bytes typically)
+        flags = result_ptr.read_uint
+        result[:primary] = (flags & 0x1) != 0
+        result[:sub] = (flags & 0x2) != 0
+
+        # Read the fingerprint pointer (offset depends on struct padding)
+        # Try reading at offset 4 or 8 depending on architecture
+        fpr_ptr = result_ptr.get_pointer(FFI::Pointer.size == 8 ? 8 : 4)
+        result[:fpr] = fpr_ptr.read_string unless fpr_ptr.null?
+
+        result
+      end
+
+      # Generates a complete key pair with optional subkeys using XML parameters (asynchronous).
+      #
+      # This is the asynchronous version of {#generate_key_pair}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param params [String] XML string describing the key parameters
+      # @param public_key [Data, nil] optional Data object to receive the public key
+      # @param secret_key [Data, nil] optional Data object to receive the secret key
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Generate key pair asynchronously
+      #   params = <<~XML
+      #     <GnupgKeyParms format="internal">
+      #       Key-Type: RSA
+      #       Key-Length: 2048
+      #       Name-Real: Charlie Brown
+      #       Name-Email: charlie@example.com
+      #     </GnupgKeyParms>
+      #   XML
+      #   ctx.generate_key_pair_start(params)
+      #   ctx.wait
+      #   result = ctx.get_genkey_result
+      #
+      # @note This operation may take some time
+      # @note Use {#get_genkey_result} after {#wait} to retrieve the result
+      def generate_key_pair_start(params, public_key = nil, secret_key = nil)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "params cannot be nil" if params.nil?
+        raise Crypt::GPGME::Error, "params cannot be empty" if params.to_s.empty?
+
+        pub_ptr = public_key ? (public_key.is_a?(Data) ? public_key.instance_variable_get(:@data).pointer : public_key.pointer) : nil
+        sec_ptr = secret_key ? (secret_key.is_a?(Data) ? secret_key.instance_variable_get(:@data).pointer : secret_key.pointer) : nil
+
+        err = gpgme_op_genkey_start(@ctx.pointer, params, pub_ptr, sec_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_genkey_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end

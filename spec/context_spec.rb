@@ -1358,4 +1358,105 @@ RSpec.describe Crypt::GPGME::Context do
 
     # Note: Asynchronous operations require wait() to complete.
   end
+
+  describe '#generate_key_pair' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:generate_key_pair)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.generate_key_pair }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts params parameter' do
+      expect(subject.method(:generate_key_pair).parameters).to include([:req, :params])
+    end
+
+    example 'accepts optional public_key parameter' do
+      expect(subject.method(:generate_key_pair).parameters).to include([:opt, :public_key])
+    end
+
+    example 'accepts optional secret_key parameter' do
+      expect(subject.method(:generate_key_pair).parameters).to include([:opt, :secret_key])
+    end
+
+    example 'method has correct arity' do
+      # -2 means 1 required, 2 optional
+      expect(subject.method(:generate_key_pair).arity).to eq(-2)
+    end
+
+    example 'returns a hash' do
+      skip "Skipping actual key generation in tests"
+      # This would take time and modify the keyring
+      # params = "<GnupgKeyParms format=\"internal\">\nKey-Type: RSA\nKey-Length: 1024\nName-Real: Test\nName-Email: test@example.com\n</GnupgKeyParms>"
+      # result = subject.generate_key_pair(params)
+      # expect(result).to be_a(Hash)
+    end
+
+    example 'raises error with nil params' do
+      expect { subject.generate_key_pair(nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with empty params' do
+      expect { subject.generate_key_pair("") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with invalid XML params' do
+      expect { subject.generate_key_pair("invalid xml") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts Data objects for public and secret key' do
+      skip "Skipping actual key generation in tests"
+      # public_data = Crypt::GPGME::Data.new
+      # secret_data = Crypt::GPGME::Data.new
+      # params = "<GnupgKeyParms format=\"internal\">\nKey-Type: RSA\nKey-Length: 1024\nName-Real: Test\nName-Email: test@example.com\n</GnupgKeyParms>"
+      # result = subject.generate_key_pair(params, public_data, secret_data)
+      # expect(result).to be_a(Hash)
+    end
+
+    example 'accepts nil for public and secret key parameters' do
+      skip "Skipping actual key generation in tests"
+      # params = "<GnupgKeyParms format=\"internal\">\nKey-Type: RSA\nKey-Length: 1024\nName-Real: Test\nName-Email: test@example.com\n</GnupgKeyParms>"
+      # result = subject.generate_key_pair(params, nil, nil)
+      # expect(result).to be_a(Hash)
+    end
+
+    # Note: Actual key generation requires entropy and modifies the keyring.
+    # Full integration tests should be run separately.
+  end
+
+  describe '#generate_key_pair_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:generate_key_pair_start)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.generate_key_pair_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:generate_key_pair).parameters
+      async_params = subject.method(:generate_key_pair_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of generate_key_pair' do
+      expect(subject.method(:generate_key_pair_start).arity).to eq(subject.method(:generate_key_pair).arity)
+    end
+
+    example 'raises error with nil params' do
+      expect { subject.generate_key_pair_start(nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with empty params' do
+      expect { subject.generate_key_pair_start("") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with invalid XML params' do
+      expect { subject.generate_key_pair_start("invalid xml") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+    # Use get_genkey_result() after wait() to retrieve the result.
+  end
 end
