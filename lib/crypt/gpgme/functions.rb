@@ -118,7 +118,7 @@ module Crypt
       attach_function :gpgme_set_offline, [Structs::Context, :bool], :void
       attach_function :gpgme_set_pinentry_mode, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_protocol, [Structs::Context, :uint], :uint
-      attach_function :gpgme_set_sender, [Structs::Context, :uint], :uint
+      attach_function :gpgme_set_sender, [Structs::Context, :string], :uint
       attach_function :gpgme_set_textmode, [Structs::Context, :bool], :void
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint

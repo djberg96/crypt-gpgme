@@ -367,6 +367,44 @@ module Crypt
         gpgme_set_pinentry_mode(@ctx.pointer, mode)
       end
 
+      # Gets the sender address.
+      #
+      # The sender address is used for signing operations to specify the
+      # sender's email address.
+      #
+      # @return [String, nil] the sender address, or nil if not set
+      #
+      # @example
+      #   ctx.sender # => "alice@example.com"
+      def sender
+        gpgme_get_sender(@ctx.pointer)
+      end
+
+      # Sets the sender address.
+      #
+      # The sender address is used for signing operations to specify the
+      # sender's email address. The address should be in RFC-2822 format.
+      #
+      # @param address [String] the sender address (e.g., "alice@example.com")
+      # @return [String] the address that was set
+      # @raise [Crypt::GPGME::Error] if setting the sender fails
+      #
+      # @example
+      #   ctx.sender = "alice@example.com"
+      #
+      # @example With a display name
+      #   ctx.sender = "Alice <alice@example.com>"
+      def sender=(address)
+        err = gpgme_set_sender(@ctx.pointer, address)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_sender failed: #{errstr}"
+        end
+
+        address
+      end
+
       # Signs data.
       #
       # @param data [Crypt::GPGME::Structs::Data] the data to sign

@@ -203,6 +203,64 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  describe '#sender' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:sender)
+    end
+
+    example 'returns nil by default' do
+      expect(subject.sender).to be_nil
+    end
+
+    example 'returns a string when set' do
+      subject.sender = "test@example.com"
+      expect(subject.sender).to be_a(String)
+    end
+
+    example 'returns the sender address that was set' do
+      address = "alice@example.com"
+      subject.sender = address
+      expect(subject.sender).to eq(address)
+    end
+  end
+
+  describe '#sender=' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:sender=)
+    end
+
+    example 'accepts a simple email address' do
+      expect { subject.sender = "alice@example.com" }.not_to raise_error
+    end
+
+    example 'accepts an email with display name' do
+      expect { subject.sender = "Alice <alice@example.com>" }.not_to raise_error
+    end
+
+    example 'normalizes email with display name to just the address' do
+      subject.sender = "Alice <alice@example.com>"
+      expect(subject.sender).to eq("alice@example.com")
+    end
+
+    example 'returns the address that was set' do
+      address = "bob@example.com"
+      result = subject.sender = address
+      expect(result).to eq(address)
+    end
+
+    example 'sets the sender that can be retrieved' do
+      subject.sender = "charlie@example.com"
+      expect(subject.sender).to eq("charlie@example.com")
+    end
+
+    example 'can update the sender' do
+      subject.sender = "first@example.com"
+      expect(subject.sender).to eq("first@example.com")
+      subject.sender = "second@example.com"
+      expect(subject.sender).to eq("second@example.com")
+    end
+  end
+
   describe '#sign' do
     example 'basic functionality' do
       expect(subject).to respond_to(:sign)
