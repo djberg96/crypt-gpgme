@@ -9,7 +9,7 @@ RSpec.describe Crypt::GPGME::Context do
   subject { described_class.new }
 
   after do
-    subject.release
+    subject.release unless subject.released?
   end
 
   describe '#armor?' do
@@ -230,12 +230,43 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  describe '#released?' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:released?)
+    end
+
+    example 'returns a boolean' do
+      expect(subject.released?).to be_boolean
+    end
+
+    example 'returns false for a new context' do
+      expect(subject.released?).to be(false)
+    end
+
+    example 'returns true after release is called' do
+      expect(subject.released?).to be(false)
+      subject.release
+      expect(subject.released?).to be(true)
+    end
+  end
+
   describe '#release' do
     example 'basic functionality' do
       expect(subject).to respond_to(:release)
     end
 
     example 'can be called without error' do
+      expect { subject.release }.not_to raise_error
+    end
+
+    example 'sets released? to true' do
+      subject.release
+      expect(subject.released?).to be(true)
+    end
+
+    example 'can be called multiple times safely' do
+      subject.release
+      expect { subject.release }.not_to raise_error
       expect { subject.release }.not_to raise_error
     end
   end
