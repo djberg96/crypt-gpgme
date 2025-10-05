@@ -773,6 +773,77 @@ module Crypt
 
         arr
       end
+
+      # Sets the expiration time for a key or its subkeys (synchronous).
+      #
+      # This method changes the expiration time of a key or specific subkeys.
+      # By default, it changes the expiration of the primary key. To change
+      # specific subkeys, provide their fingerprints in the +subfprs+ parameter.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param expires [Integer] the expiration time in seconds from now, or 0 for no expiration
+      # @param subfprs [String, nil] optional newline-separated fingerprints of subkeys to modify,
+      #   or nil to modify the primary key only
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Set primary key to expire in 1 year
+      #   key = ctx.list_keys("user@example.com").first
+      #   ctx.set_expire(key, 365 * 24 * 60 * 60)
+      #
+      # @example Set primary key to never expire
+      #   ctx.set_expire(key, 0)
+      #
+      # @example Set specific subkeys to expire in 6 months
+      #   ctx.set_expire(key, 180 * 24 * 60 * 60, "FPR1\nFPR2")
+      #
+      # @note This operation requires the key's passphrase
+      # @note Time is relative to the current moment, not absolute
+      def set_expire(key, expires, subfprs = nil, reserved = 0)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_setexpire(@ctx.pointer, key_struct, expires, subfprs, reserved)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setexpire failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Sets the expiration time for a key or its subkeys (asynchronous).
+      #
+      # This is the asynchronous version of {#set_expire}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param expires [Integer] the expiration time in seconds from now, or 0 for no expiration
+      # @param subfprs [String, nil] optional newline-separated fingerprints of subkeys to modify,
+      #   or nil to modify the primary key only
+      # @param reserved [Integer] reserved parameter, must be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Set key expiration asynchronously
+      #   key = ctx.list_keys("user@example.com").first
+      #   ctx.set_expire_start(key, 365 * 24 * 60 * 60)
+      #   ctx.wait
+      #
+      # @note This operation requires the key's passphrase
+      # @note Time is relative to the current moment, not absolute
+      def set_expire_start(key, expires, subfprs = nil, reserved = 0)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_setexpire_start(@ctx.pointer, key_struct, expires, subfprs, reserved)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setexpire_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end

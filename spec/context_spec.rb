@@ -692,4 +692,99 @@ RSpec.describe Crypt::GPGME::Context do
     # data causes segmentation faults. The feature is documented in the
     # method's YARD documentation for users who have real key data.
   end
+
+  describe '#set_expire' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_expire)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.set_expire }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts a key and expiration time' do
+      expect(subject.method(:set_expire).arity).to eq(-3)
+    end
+
+    example 'raises an error with nil key' do
+      expect { subject.set_expire(nil, 0) }.to raise_error(Crypt::GPGME::Error, /Invalid value/)
+    end
+
+    example 'accepts expiration time of 0' do
+      # We can't actually test this without a valid key and passphrase,
+      # but we can verify the method accepts the parameter
+      expect(subject.method(:set_expire).parameters).to include([:req, :expires])
+    end
+
+    example 'accepts subfprs parameter' do
+      expect(subject.method(:set_expire).parameters).to include([:opt, :subfprs])
+    end
+
+    example 'accepts reserved parameter' do
+      expect(subject.method(:set_expire).parameters).to include([:opt, :reserved])
+    end
+
+    example 'method signature accepts 2 to 4 arguments' do
+      params = subject.method(:set_expire).parameters
+      required = params.count { |type, _| type == :req }
+      optional = params.count { |type, _| type == :opt }
+      expect(required).to eq(2)
+      expect(optional).to eq(2)
+    end
+
+    # Note: Full integration testing with actual keys requires:
+    # - Valid keys in the keyring
+    # - Passphrase handling via pinentry or passphrase callback
+    # - Ability to modify keys (not read-only)
+    # These tests verify the interface is correct.
+  end
+
+  describe '#set_expire_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_expire_start)
+    end
+
+    example 'requires at least 2 arguments' do
+      expect { subject.set_expire_start }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts a key and expiration time' do
+      expect(subject.method(:set_expire_start).arity).to eq(-3)
+    end
+
+    example 'raises an error with nil key' do
+      expect { subject.set_expire_start(nil, 0) }.to raise_error(Crypt::GPGME::Error, /Invalid value/)
+    end
+
+    example 'accepts expiration time of 0' do
+      expect(subject.method(:set_expire_start).parameters).to include([:req, :expires])
+    end
+
+    example 'accepts subfprs parameter' do
+      expect(subject.method(:set_expire_start).parameters).to include([:opt, :subfprs])
+    end
+
+    example 'accepts reserved parameter' do
+      expect(subject.method(:set_expire_start).parameters).to include([:opt, :reserved])
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:set_expire).parameters
+      async_params = subject.method(:set_expire_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of set_expire' do
+      # Verify both methods exist and have similar signatures
+      expect(subject).to respond_to(:set_expire)
+      expect(subject).to respond_to(:set_expire_start)
+
+      sync_arity = subject.method(:set_expire).arity
+      async_arity = subject.method(:set_expire_start).arity
+      expect(async_arity).to eq(sync_arity)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+    # Full integration testing requires valid keys and passphrases.
+  end
 end
