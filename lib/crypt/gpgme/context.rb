@@ -1519,6 +1519,198 @@ module Crypt
 
         nil
       end
+
+      # Signs a key with the current signing key (synchronous).
+      #
+      # This method creates a signature on a key, certifying that you have verified
+      # the identity of the key owner. The signature is made using the signing key(s)
+      # set in the context via {#add_signer}.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to sign
+      # @param userid [String, nil] specific user ID to sign (nil signs all UIDs)
+      # @param expires [Integer] expiration time (0 = no expiration, Unix timestamp, or relative seconds)
+      # @param flags [Integer] signing flags (combination of GPGME_KEYSIGN_* constants)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Sign all user IDs on a key
+      #   signing_key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.add_signer(signing_key)
+      #
+      #   key_to_sign = ctx.list_keys("bob@example.com").first
+      #   ctx.sign_key(key_to_sign)
+      #
+      # @example Sign a specific user ID
+      #   ctx.sign_key(key, "Bob <bob@work.com>")
+      #
+      # @example Create a local signature (not exportable)
+      #   ctx.sign_key(key, nil, 0, Crypt::GPGME::GPGME_KEYSIGN_LOCAL)
+      #
+      # @example Create a signature that expires in 1 year
+      #   one_year = Time.now.to_i + (365 * 24 * 60 * 60)
+      #   ctx.sign_key(key, nil, one_year)
+      #
+      # @example Sign with no expiration and force signature
+      #   flags = Crypt::GPGME::GPGME_KEYSIGN_NOEXPIRE | Crypt::GPGME::GPGME_KEYSIGN_FORCE
+      #   ctx.sign_key(key, nil, 0, flags)
+      #
+      # @note You must set a signing key using {#add_signer} before calling this method
+      # @note This operation requires the signing key's passphrase
+      # @note If userid is nil, all user IDs on the key will be signed
+      # @note Local signatures (GPGME_KEYSIGN_LOCAL) are not exported with the key
+      # @see https://www.gnupg.org/documentation/manuals/gpgme/Signing-Keys.html
+      def sign_key(key, userid = nil, expires = 0, flags = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_keysign(@ctx.pointer, key_struct, userid, expires, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_keysign failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Signs a key with the current signing key (asynchronous).
+      #
+      # This is the asynchronous version of {#sign_key}. It initiates the
+      # signing operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to sign
+      # @param userid [String, nil] specific user ID to sign (nil signs all UIDs)
+      # @param expires [Integer] expiration time (0 = no expiration)
+      # @param flags [Integer] signing flags (combination of GPGME_KEYSIGN_* constants)
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Sign a key asynchronously
+      #   signing_key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.add_signer(signing_key)
+      #
+      #   key_to_sign = ctx.list_keys("bob@example.com").first
+      #   ctx.sign_key_start(key_to_sign)
+      #   ctx.wait
+      #
+      # @note This operation requires the signing key's passphrase
+      def sign_key_start(key, userid = nil, expires = 0, flags = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        err = gpgme_op_keysign_start(@ctx.pointer, key_struct, userid, expires, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_keysign_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Revokes a signature on a key (synchronous).
+      #
+      # This method revokes a signature that was previously made on a key.
+      # You can only revoke signatures that you created (signatures made with
+      # your signing key).
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key with the signature to revoke
+      # @param signing_key [Crypt::GPGME::Key, Structs::Key, nil] the key that made the signature (nil = current signers)
+      # @param userid [String, nil] specific user ID with signature to revoke (nil revokes all)
+      # @param flags [Integer] reserved for future use, should be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Revoke a signature on all user IDs
+      #   signing_key = ctx.list_keys("alice@example.com", 1).first
+      #   key_with_sig = ctx.list_keys("bob@example.com").first
+      #   ctx.revoke_signature(key_with_sig, signing_key)
+      #
+      # @example Revoke signature on specific user ID
+      #   ctx.revoke_signature(key, signing_key, "Bob <bob@work.com>")
+      #
+      # @example Revoke using current signer
+      #   signing_key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.add_signer(signing_key)
+      #   ctx.revoke_signature(key_with_sig, nil)
+      #
+      # @note You must have the private key that made the original signature
+      # @note This operation requires the signing key's passphrase
+      # @note If userid is nil, signatures on all user IDs will be revoked
+      # @note If signing_key is nil, the current signers from the context are used
+      # @see https://www.gnupg.org/documentation/manuals/gpgme/Signing-Keys.html
+      def revoke_signature(key, signing_key = nil, userid = nil, flags = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+
+        # Get signing key struct, handle nil case
+        signing_key_struct = if signing_key.nil?
+          nil
+        elsif signing_key.is_a?(Structs::Key)
+          signing_key
+        else
+          signing_key.instance_variable_get(:@key)
+        end
+
+        err = gpgme_op_revsig(@ctx.pointer, key_struct, signing_key_struct, userid, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_revsig failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Revokes a signature on a key (asynchronous).
+      #
+      # This is the asynchronous version of {#revoke_signature}. It initiates the
+      # revocation operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key with the signature to revoke
+      # @param signing_key [Crypt::GPGME::Key, Structs::Key, nil] the key that made the signature
+      # @param userid [String, nil] specific user ID with signature to revoke (nil revokes all)
+      # @param flags [Integer] reserved for future use, should be 0
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Revoke a signature asynchronously
+      #   signing_key = ctx.list_keys("alice@example.com", 1).first
+      #   key_with_sig = ctx.list_keys("bob@example.com").first
+      #   ctx.revoke_signature_start(key_with_sig, signing_key)
+      #   ctx.wait
+      #
+      # @note This operation requires the signing key's passphrase
+      def revoke_signature_start(key, signing_key = nil, userid = nil, flags = 0)
+        # Validate parameters
+        raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+
+        # Get signing key struct, handle nil case
+        signing_key_struct = if signing_key.nil?
+          nil
+        elsif signing_key.is_a?(Structs::Key)
+          signing_key
+        else
+          signing_key.instance_variable_get(:@key)
+        end
+
+        err = gpgme_op_revsig_start(@ctx.pointer, key_struct, signing_key_struct, userid, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_revsig_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end

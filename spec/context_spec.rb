@@ -1459,4 +1459,213 @@ RSpec.describe Crypt::GPGME::Context do
     # Note: Asynchronous operations require wait() to complete.
     # Use get_genkey_result() after wait() to retrieve the result.
   end
+
+  describe '#sign_key' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:sign_key)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.sign_key }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts key parameter' do
+      expect(subject.method(:sign_key).parameters).to include([:req, :key])
+    end
+
+    example 'accepts optional userid parameter' do
+      expect(subject.method(:sign_key).parameters).to include([:opt, :userid])
+    end
+
+    example 'accepts optional expires parameter' do
+      expect(subject.method(:sign_key).parameters).to include([:opt, :expires])
+    end
+
+    example 'accepts optional flags parameter' do
+      expect(subject.method(:sign_key).parameters).to include([:opt, :flags])
+    end
+
+    example 'method has correct arity' do
+      # -2 means 1 required, 3 optional
+      expect(subject.method(:sign_key).arity).to eq(-2)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.sign_key(nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts nil userid to sign all UIDs' do
+      skip "Requires key with signing capability and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # subject.sign_key(key, nil)
+    end
+
+    example 'accepts specific userid' do
+      skip "Requires key with signing capability and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # subject.sign_key(key, "Test User <test@example.com>")
+    end
+
+    example 'accepts expires parameter' do
+      skip "Requires key with signing capability and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # one_year = Time.now.to_i + (365 * 24 * 60 * 60)
+      # subject.sign_key(key, nil, one_year)
+    end
+
+    example 'accepts flags parameter' do
+      skip "Requires key with signing capability and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # subject.sign_key(key, nil, 0, Crypt::GPGME::GPGME_KEYSIGN_LOCAL)
+    end
+
+    example 'can combine multiple flags' do
+      skip "Requires key with signing capability and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # flags = Crypt::GPGME::GPGME_KEYSIGN_LOCAL | Crypt::GPGME::GPGME_KEYSIGN_NOEXPIRE
+      # subject.sign_key(key, nil, 0, flags)
+    end
+
+    # Note: Actual key signing requires a signing key with passphrase.
+    # Full integration tests should be run separately.
+  end
+
+  describe '#sign_key_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:sign_key_start)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.sign_key_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:sign_key).parameters
+      async_params = subject.method(:sign_key_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of sign_key' do
+      expect(subject.method(:sign_key_start).arity).to eq(subject.method(:sign_key).arity)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.sign_key_start(nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts all parameters like synchronous version' do
+      skip "Requires key with signing capability and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # subject.sign_key_start(key, "Test <test@example.com>", 0, 0)
+      # subject.wait
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
+
+  describe '#revoke_signature' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:revoke_signature)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.revoke_signature }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts key parameter' do
+      expect(subject.method(:revoke_signature).parameters).to include([:req, :key])
+    end
+
+    example 'accepts optional signing_key parameter' do
+      expect(subject.method(:revoke_signature).parameters).to include([:opt, :signing_key])
+    end
+
+    example 'accepts optional userid parameter' do
+      expect(subject.method(:revoke_signature).parameters).to include([:opt, :userid])
+    end
+
+    example 'accepts optional flags parameter' do
+      expect(subject.method(:revoke_signature).parameters).to include([:opt, :flags])
+    end
+
+    example 'method has correct arity' do
+      # -2 means 1 required, 3 optional
+      expect(subject.method(:revoke_signature).arity).to eq(-2)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.revoke_signature(nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts nil signing_key to use current signers' do
+      skip "Requires key with signature and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # subject.revoke_signature(key, nil)
+    end
+
+    example 'accepts specific signing_key' do
+      skip "Requires key with signature and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # signing_key = subject.list_keys("signer@example.com", 1).first
+      # subject.revoke_signature(key, signing_key)
+    end
+
+    example 'accepts nil userid to revoke all signatures' do
+      skip "Requires key with signature and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # signing_key = subject.list_keys("signer@example.com", 1).first
+      # subject.revoke_signature(key, signing_key, nil)
+    end
+
+    example 'accepts specific userid' do
+      skip "Requires key with signature and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # signing_key = subject.list_keys("signer@example.com", 1).first
+      # subject.revoke_signature(key, signing_key, "Test User <test@example.com>")
+    end
+
+    example 'accepts flags parameter' do
+      skip "Requires key with signature and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # signing_key = subject.list_keys("signer@example.com", 1).first
+      # subject.revoke_signature(key, signing_key, nil, 0)
+    end
+
+    # Note: Actual signature revocation requires appropriate keys and passphrases.
+    # Full integration tests should be run separately.
+  end
+
+  describe '#revoke_signature_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:revoke_signature_start)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.revoke_signature_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:revoke_signature).parameters
+      async_params = subject.method(:revoke_signature_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of revoke_signature' do
+      expect(subject.method(:revoke_signature_start).arity).to eq(subject.method(:revoke_signature).arity)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.revoke_signature_start(nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts all parameters like synchronous version' do
+      skip "Requires key with signature and passphrase"
+      # key = subject.list_keys("test@example.com").first
+      # signing_key = subject.list_keys("signer@example.com", 1).first
+      # subject.revoke_signature_start(key, signing_key, "Test <test@example.com>", 0)
+      # subject.wait
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
 end
