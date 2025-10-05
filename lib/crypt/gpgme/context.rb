@@ -2201,6 +2201,107 @@ module Crypt
         result
       end
 =end
+
+      # Delete a key from the keyring.
+      #
+      # This method deletes the specified key from the keyring. By default, only
+      # public keys can be deleted. To delete a secret key, you must pass
+      # GPGME_DELETE_ALLOW_SECRET in the flags parameter.
+      #
+      # If the key has both a public and secret part, you must set the
+      # GPGME_DELETE_ALLOW_SECRET flag to allow deletion of the secret key.
+      # Otherwise, an error will be returned.
+      #
+      # @param key [Key] The key to delete.
+      # @param flags [Integer] Deletion flags. Use GPGME_DELETE_ALLOW_SECRET to allow
+      #   deletion of secret keys, or GPGME_DELETE_FORCE to force deletion without
+      #   confirmation (if supported by the backend).
+      #
+      # @return [nil]
+      #
+      # @raise [SystemCallError] If the key cannot be deleted.
+      #
+      # @example Delete a public key
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", false, :object)
+      #   ctx.delete_key(keys.first) if keys.any?
+      #
+      # @example Delete a key with secret key
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", false, :object)
+      #   if keys.any?
+      #     ctx.delete_key(keys.first, Crypt::GPGME::Constants::GPGME_DELETE_ALLOW_SECRET)
+      #   end
+      #
+      # @example Force delete a key
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", false, :object)
+      #   if keys.any?
+      #     flags = Crypt::GPGME::Constants::GPGME_DELETE_ALLOW_SECRET |
+      #             Crypt::GPGME::Constants::GPGME_DELETE_FORCE
+      #     ctx.delete_key(keys.first, flags)
+      #   end
+      #
+      def delete_key(key, flags = 0)
+        raise ArgumentError, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        raise TypeError, "key must be a Key object" if key_struct.nil?
+
+        err = Functions.gpgme_op_delete(@ctx, key_struct, flags)
+
+        if err != 0
+          raise SystemCallError.new(Functions.gpgme_strerror(err), err)
+        end
+
+        nil
+      end
+
+      # Delete a key from the keyring asynchronously.
+      #
+      # This method starts an asynchronous operation to delete the specified key
+      # from the keyring. The operation must be completed by calling wait() on
+      # the context.
+      #
+      # @param key [Key] The key to delete.
+      # @param flags [Integer] Deletion flags. Use GPGME_DELETE_ALLOW_SECRET to allow
+      #   deletion of secret keys, or GPGME_DELETE_FORCE to force deletion without
+      #   confirmation (if supported by the backend).
+      #
+      # @return [nil]
+      #
+      # @raise [SystemCallError] If the operation cannot be started.
+      #
+      # @example Delete a key asynchronously
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", false, :object)
+      #   if keys.any?
+      #     ctx.delete_key_start(keys.first)
+      #     ctx.wait
+      #   end
+      #
+      # @example Delete a secret key asynchronously
+      #   ctx = Crypt::GPGME::Context.new
+      #   keys = ctx.list_keys("test@example.com", false, :object)
+      #   if keys.any?
+      #     ctx.delete_key_start(keys.first, Crypt::GPGME::Constants::GPGME_DELETE_ALLOW_SECRET)
+      #     ctx.wait
+      #   end
+      #
+      def delete_key_start(key, flags = 0)
+        raise ArgumentError, "key cannot be nil" if key.nil?
+
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        raise TypeError, "key must be a Key object" if key_struct.nil?
+
+        err = Functions.gpgme_op_delete_start(@ctx, key_struct, flags)
+
+        if err != 0
+          raise SystemCallError.new(Functions.gpgme_strerror(err), err)
+        end
+
+        nil
+      end
     end
   end
 end

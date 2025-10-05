@@ -2276,4 +2276,92 @@ RSpec.describe Crypt::GPGME::Context do
 
     # Note: This method is useful after asynchronous import operations
   end
+
+  describe '#delete_key' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:delete_key)
+    end
+
+    example 'accepts 1 or 2 arguments' do
+      expect(subject.method(:delete_key).arity).to be_between(-3, -1)
+    end
+
+    example 'requires a Key parameter' do
+      expect{ subject.delete_key(nil) }.to raise_error(ArgumentError, /key cannot be nil/)
+    end
+
+    example 'raises TypeError if key is not a Key object' do
+      expect{ subject.delete_key("not a key") }.to raise_error(TypeError, /key must be a Key object/)
+    end
+
+    example 'returns nil on success' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'can delete a public key' do
+      # Note: This test would delete an actual key, so we skip it by default
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'raises error when trying to delete key with secret part without flag' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'can delete key with secret part when flag is set' do
+      # Note: This test would delete an actual key, so we skip it by default
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'accepts GPGME_DELETE_ALLOW_SECRET flag' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'accepts GPGME_DELETE_FORCE flag' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'accepts combined flags' do
+      skip "Skipping actual key deletion test"
+    end
+  end
+
+  describe '#delete_key_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:delete_key_start)
+    end
+
+    example 'accepts 1 or 2 arguments' do
+      expect(subject.method(:delete_key_start).arity).to be_between(-3, -1)
+    end
+
+    example 'requires a Key parameter' do
+      expect{ subject.delete_key_start(nil) }.to raise_error(ArgumentError, /key cannot be nil/)
+    end
+
+    example 'raises TypeError if key is not a Key object' do
+      expect{ subject.delete_key_start("not a key") }.to raise_error(TypeError, /key must be a Key object/)
+    end
+
+    example 'returns nil when operation starts' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'starts an asynchronous operation' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'accepts GPGME_DELETE_ALLOW_SECRET flag' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'accepts GPGME_DELETE_FORCE flag' do
+      skip "Skipping actual key deletion test"
+    end
+
+    example 'accepts combined flags' do
+      skip "Skipping actual key deletion test"
+    end
+
+    # Note: delete_key_start should be followed by wait() to complete the operation
+  end
 end

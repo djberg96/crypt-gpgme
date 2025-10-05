@@ -74,6 +74,8 @@ module Crypt
       attach_function :gpgme_op_createkey_start, [Structs::Context, :string, :string, :uint, :uint, Structs::Key, :uint], :uint
       attach_function :gpgme_op_createsubkey, [Structs::Context, Structs::Key, :string, :uint, :uint, :uint], :uint
       attach_function :gpgme_op_createsubkey_start, [Structs::Context, Structs::Key, :string, :uint, :uint, :uint], :uint
+      attach_function :gpgme_op_delete, [Structs::Context, Structs::Key, :uint], :uint
+      attach_function :gpgme_op_delete_start, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_op_export, [Structs::Context, :string, :uint, :pointer], :uint
       attach_function :gpgme_op_export_start, [Structs::Context, :string, :uint, :pointer], :uint
       attach_function :gpgme_op_export_ext, [Structs::Context, :string, :uint, :pointer], :uint
