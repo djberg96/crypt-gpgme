@@ -28,6 +28,7 @@ module Crypt
         @ctx = Structs::Context.new
         @released = false
         @progress_callback = nil
+        @status_callback = nil
         gpgme_check_version(nil)
         err = gpgme_new(@ctx)
 
@@ -465,6 +466,65 @@ module Crypt
       #   callback = ctx.progress_callback
       def progress_callback
         @progress_callback
+      end
+
+      # Sets a status callback for receiving status messages from operations.
+      #
+      # The callback will be invoked during cryptographic operations to report
+      # status information about what's happening (e.g., key selection, signature
+      # verification results, etc.).
+      #
+      # @param callback [Proc, nil] a proc that receives status messages, or nil to clear
+      #   The proc should accept 2 parameters:
+      #   - keyword [String]: the status keyword (e.g., "GOODSIG", "BADSIG", "KEYEXPIRED")
+      #   - args [String]: arguments associated with the status message
+      #   The proc should return 0 on success or an error code on failure
+      # @return [Proc, nil] the callback that was set
+      #
+      # @example Set a status callback
+      #   ctx.set_status_callback do |keyword, args|
+      #     puts "Status: #{keyword} - #{args}"
+      #     0  # Return 0 for success
+      #   end
+      #
+      # @example Clear the status callback
+      #   ctx.set_status_callback(nil)
+      def set_status_callback(callback = nil, &block)
+        callback = block if block_given?
+
+        if callback.nil?
+          # Clear the callback
+          gpgme_set_status_cb(@ctx.pointer, nil, nil)
+          @status_callback = nil
+        else
+          # Store the callback to prevent garbage collection
+          @status_callback = callback
+
+          # Create an FFI callback wrapper
+          ffi_callback = Proc.new do |opaque, keyword, args|
+            begin
+              result = callback.call(keyword, args)
+              result.is_a?(Integer) ? result : 0
+            rescue => e
+              warn "Status callback error: #{e.message}"
+              0  # Return success to avoid breaking the operation
+            end
+          end
+
+          gpgme_set_status_cb(@ctx.pointer, ffi_callback, nil)
+        end
+
+        callback
+      end
+
+      # Gets the current status callback.
+      #
+      # @return [Proc, nil] the current status callback, or nil if not set
+      #
+      # @example
+      #   callback = ctx.status_callback
+      def status_callback
+        @status_callback
       end
 
       # Signs data.

@@ -404,6 +404,86 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  describe '#set_status_callback' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_status_callback)
+    end
+
+    example 'accepts a Proc argument' do
+      callback = Proc.new { |keyword, args| 0 }
+      expect { subject.set_status_callback(callback) }.not_to raise_error
+    end
+
+    example 'accepts a block' do
+      expect { subject.set_status_callback { |keyword, args| 0 } }.not_to raise_error
+    end
+
+    example 'accepts nil to clear the callback' do
+      subject.set_status_callback { |keyword, args| 0 }
+      expect { subject.set_status_callback(nil) }.not_to raise_error
+    end
+
+    example 'returns the callback that was set' do
+      callback = Proc.new { |keyword, args| 0 }
+      result = subject.set_status_callback(callback)
+      expect(result).to eq(callback)
+    end
+
+    example 'returns nil when cleared' do
+      result = subject.set_status_callback(nil)
+      expect(result).to be_nil
+    end
+
+    example 'stores the callback' do
+      callback = Proc.new { |keyword, args| 0 }
+      subject.set_status_callback(callback)
+      expect(subject.status_callback).to eq(callback)
+    end
+
+    example 'clears the stored callback when set to nil' do
+      subject.set_status_callback { |keyword, args| 0 }
+      subject.set_status_callback(nil)
+      expect(subject.status_callback).to be_nil
+    end
+
+    example 'overwrites previous callback' do
+      callback1 = Proc.new { |keyword, args| 0 }
+      callback2 = Proc.new { |keyword, args| 1 }
+      subject.set_status_callback(callback1)
+      subject.set_status_callback(callback2)
+      expect(subject.status_callback).to eq(callback2)
+    end
+
+    example 'block takes precedence over proc argument' do
+      callback = Proc.new { |keyword, args| 0 }
+      result = subject.set_status_callback(callback) { |keyword, args| 1 }
+      expect(result).not_to eq(callback)
+      expect(result).to be_a(Proc)
+    end
+  end
+
+  describe '#status_callback' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:status_callback)
+    end
+
+    example 'returns nil by default' do
+      expect(subject.status_callback).to be_nil
+    end
+
+    example 'returns the callback that was set' do
+      callback = Proc.new { |keyword, args| 0 }
+      subject.set_status_callback(callback)
+      expect(subject.status_callback).to eq(callback)
+    end
+
+    example 'returns nil after callback is cleared' do
+      subject.set_status_callback { |keyword, args| 0 }
+      subject.set_status_callback(nil)
+      expect(subject.status_callback).to be_nil
+    end
+  end
+
   describe '#list_keys' do
     example 'basic functionality' do
       expect(subject).to respond_to(:list_keys)
