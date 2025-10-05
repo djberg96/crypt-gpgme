@@ -700,7 +700,7 @@ module Crypt
         end
       end
 
-            # Lists keys in the keyring.
+      # Lists keys in the keyring.
       #
       # @param pattern [String, Array<String>, Crypt::GPGME::Data, Crypt::GPGME::Structs::Data, nil] pattern(s) to match keys against, or nil for all keys
       #   Can be a single string pattern, an array of string patterns, or a Data object containing key data
@@ -1926,6 +1926,281 @@ module Crypt
 
         nil
       end
+
+      # TODO: Import methods commented out due to test failures with invalid key data
+      # These will be re-enabled once proper test data is available
+
+=begin
+      # Imports keys from key data (synchronous).
+      #
+      # This method imports keys from a Data object containing key material
+      # (typically in ASCII-armored or binary format). It returns a hash
+      # with statistics about the import operation.
+      #
+      # @param keydata [Data, Structs::Data] Data object containing the key data to import
+      # @return [Hash] import result with statistics
+      #   - :considered (Integer) - number of keys considered for import
+      #   - :no_user_id (Integer) - number of keys without user IDs
+      #   - :imported (Integer) - number of keys imported
+      #   - :imported_rsa (Integer) - number of RSA keys imported
+      #   - :unchanged (Integer) - number of keys that were already present
+      #   - :new_user_ids (Integer) - number of new user IDs
+      #   - :new_sub_keys (Integer) - number of new sub keys
+      #   - :new_signatures (Integer) - number of new signatures
+      #   - :new_revocations (Integer) - number of new revocations
+      #   - :secret_read (Integer) - number of secret keys read
+      #   - :secret_imported (Integer) - number of secret keys imported
+      #   - :secret_unchanged (Integer) - number of secret keys unchanged
+      #   - :not_imported (Integer) - number of keys not imported
+      # @raise [Crypt::GPGME::Error] if the import operation fails
+      #
+      # @example Import keys from a file
+      #   keydata = Crypt::GPGME::Data.new("exported_keys.asc")
+      #   result = ctx.import_keys(keydata)
+      #   puts "Imported #{result[:imported]} keys"
+      #
+      # @example Import keys from a string
+      #   key_string = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n..."
+      #   keydata = Crypt::GPGME::Data.new(key_string)
+      #   result = ctx.import_keys(keydata)
+      #   puts "#{result[:considered]} keys considered, #{result[:imported]} imported"
+      #
+      # @example Check for keys that failed to import
+      #   result = ctx.import_keys(keydata)
+      #   if result[:not_imported] > 0
+      #     puts "Warning: #{result[:not_imported]} keys could not be imported"
+      #   end
+      def import_keys(keydata)
+        raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
+
+        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        err = gpgme_op_import(@ctx.pointer, data_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_import failed: #{errstr}"
+        end
+
+        # Get the import result
+        result_ptr = gpgme_op_import_result(@ctx.pointer)
+
+        if result_ptr.null?
+          raise Crypt::GPGME::Error, "Failed to get import result"
+        end
+
+        # Parse the import result structure
+        # struct _gpgme_op_import_result has these integer fields:
+        # considered, no_user_id, imported, imported_rsa, unchanged,
+        # new_user_ids, new_sub_keys, new_signatures, new_revocations,
+        # secret_read, secret_imported, secret_unchanged, not_imported
+        # followed by a pointer to imports list
+
+        result = {}
+        ptr = result_ptr
+        result[:considered] = ptr.read_int; ptr += 4
+        result[:no_user_id] = ptr.read_int; ptr += 4
+        result[:imported] = ptr.read_int; ptr += 4
+        result[:imported_rsa] = ptr.read_int; ptr += 4
+        result[:unchanged] = ptr.read_int; ptr += 4
+        result[:new_user_ids] = ptr.read_int; ptr += 4
+        result[:new_sub_keys] = ptr.read_int; ptr += 4
+        result[:new_signatures] = ptr.read_int; ptr += 4
+        result[:new_revocations] = ptr.read_int; ptr += 4
+        result[:secret_read] = ptr.read_int; ptr += 4
+        result[:secret_imported] = ptr.read_int; ptr += 4
+        result[:secret_unchanged] = ptr.read_int; ptr += 4
+        result[:not_imported] = ptr.read_int
+
+        result
+      end
+
+      # Imports keys from key data (asynchronous).
+      #
+      # This is the asynchronous version of {#import_keys}. It initiates
+      # the import operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete, then call {#import_keys_result}
+      # to get the import statistics.
+      #
+      # @param keydata [Data, Structs::Data] Data object containing the key data to import
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Import keys asynchronously
+      #   keydata = Crypt::GPGME::Data.new("exported_keys.asc")
+      #   ctx.import_keys_start(keydata)
+      #   ctx.wait
+      #   result = ctx.import_keys_result
+      #   puts "Imported #{result[:imported]} keys"
+      #
+      # @note Use {#wait} to complete the operation
+      # @note Use {#import_keys_result} to get the import statistics after completion
+      def import_keys_start(keydata)
+        raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
+
+        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        err = gpgme_op_import_start(@ctx.pointer, data_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_import_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Imports keys by key objects (synchronous).
+      #
+      # This method imports keys from an array of Key objects. This is useful
+      # when you want to import specific keys that you've already retrieved,
+      # for example from another keyring or context.
+      #
+      # @param keys [Array<Key, Structs::Key>] array of keys to import
+      # @return [Hash] import result with statistics (same structure as {#import_keys})
+      # @raise [Crypt::GPGME::Error] if the import operation fails
+      #
+      # @example Import specific keys
+      #   keys = ctx.list_keys("alice@example.com", 0, :object)
+      #   result = ctx2.import_keys_by_object(keys)
+      #   puts "Imported #{result[:imported]} keys"
+      #
+      # @note Keys must be Key struct objects, not hashes
+      # @note Use list_keys with format: :object to get Key objects
+      def import_keys_by_object(keys)
+        raise Crypt::GPGME::Error, "keys cannot be nil" if keys.nil?
+        raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
+
+        # Convert keys to array of structs and create NULL-terminated array
+        key_structs = keys.map do |key|
+          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        end
+
+        # Create a pointer array with NULL terminator
+        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
+        key_structs.each_with_index do |key_struct, i|
+          key_array[i].put_pointer(0, key_struct)
+        end
+        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
+
+        err = gpgme_op_import_keys(@ctx.pointer, key_array)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_import_keys failed: #{errstr}"
+        end
+
+        # Get the import result
+        result_ptr = gpgme_op_import_result(@ctx.pointer)
+
+        if result_ptr.null?
+          raise Crypt::GPGME::Error, "Failed to get import result"
+        end
+
+        result = {}
+        ptr = result_ptr
+        result[:considered] = ptr.read_int; ptr += 4
+        result[:no_user_id] = ptr.read_int; ptr += 4
+        result[:imported] = ptr.read_int; ptr += 4
+        result[:imported_rsa] = ptr.read_int; ptr += 4
+        result[:unchanged] = ptr.read_int; ptr += 4
+        result[:new_user_ids] = ptr.read_int; ptr += 4
+        result[:new_sub_keys] = ptr.read_int; ptr += 4
+        result[:new_signatures] = ptr.read_int; ptr += 4
+        result[:new_revocations] = ptr.read_int; ptr += 4
+        result[:secret_read] = ptr.read_int; ptr += 4
+        result[:secret_imported] = ptr.read_int; ptr += 4
+        result[:secret_unchanged] = ptr.read_int; ptr += 4
+        result[:not_imported] = ptr.read_int
+
+        result
+      end
+
+      # Imports keys by key objects (asynchronous).
+      #
+      # This is the asynchronous version of {#import_keys_by_object}. It initiates
+      # the import operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete, then call {#import_keys_result}
+      # to get the import statistics.
+      #
+      # @param keys [Array<Key, Structs::Key>] array of keys to import
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Import keys asynchronously
+      #   keys = ctx.list_keys("alice@example.com", 0, :object)
+      #   ctx2.import_keys_by_object_start(keys)
+      #   ctx2.wait
+      #   result = ctx2.import_keys_result
+      #   puts "Imported #{result[:imported]} keys"
+      #
+      # @note Use {#wait} to complete the operation
+      # @note Use {#import_keys_result} to get the import statistics after completion
+
+      def import_keys_by_object_start(keys)
+        raise Crypt::GPGME::Error, "keys cannot be nil" if keys.nil?
+        raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
+
+        # Convert keys to array of structs and create NULL-terminated array
+        key_structs = keys.map do |key|
+          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        end
+
+        # Create a pointer array with NULL terminator
+        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
+        key_structs.each_with_index do |key_struct, i|
+          key_array[i].put_pointer(0, key_struct)
+        end
+        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
+
+        err = gpgme_op_import_keys_start(@ctx.pointer, key_array)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_import_keys_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Gets the result of the last import operation.
+      #
+      # This method retrieves the import statistics from the last import operation
+      # (whether synchronous or asynchronous). It's particularly useful after
+      # asynchronous import operations.
+      #
+      # @return [Hash] import result with statistics (same structure as {#import_keys})
+      # @raise [Crypt::GPGME::Error] if no import result is available
+      #
+      # @example Get result after asynchronous import
+      #   ctx.import_keys_start(keydata)
+      #   ctx.wait
+      #   result = ctx.import_keys_result
+      #   puts "Imported #{result[:imported]} keys"
+      def import_keys_result
+        result_ptr = gpgme_op_import_result(@ctx.pointer)
+
+        if result_ptr.null?
+          raise Crypt::GPGME::Error, "No import result available"
+        end
+
+        result = {}
+        ptr = result_ptr
+        result[:considered] = ptr.read_int; ptr += 4
+        result[:no_user_id] = ptr.read_int; ptr += 4
+        result[:imported] = ptr.read_int; ptr += 4
+        result[:imported_rsa] = ptr.read_int; ptr += 4
+        result[:unchanged] = ptr.read_int; ptr += 4
+        result[:new_user_ids] = ptr.read_int; ptr += 4
+        result[:new_sub_keys] = ptr.read_int; ptr += 4
+        result[:new_signatures] = ptr.read_int; ptr += 4
+        result[:new_revocations] = ptr.read_int; ptr += 4
+        result[:secret_read] = ptr.read_int; ptr += 4
+        result[:secret_imported] = ptr.read_int; ptr += 4
+        result[:secret_unchanged] = ptr.read_int; ptr += 4
+        result[:not_imported] = ptr.read_int
+
+        result
+      end
+=end
     end
   end
 end
