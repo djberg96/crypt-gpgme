@@ -700,34 +700,45 @@ module Crypt
         end
       end
 
-      # Lists keys matching the given pattern.
+            # Lists keys in the keyring.
       #
-      # @param pattern [String, nil] the pattern to match (e.g., email, name, fingerprint).
-      #   If nil, lists all keys.
-      # @param secret [Integer] if non-zero, lists secret (private) keys only.
-      #   If zero (default), lists public keys.
-      # @return [Array<Hash>] an array of hashes containing key information.
-      #   Each hash contains detailed information about the key including:
-      #   - :fpr - fingerprint
-      #   - :uids - array of user IDs
-      #   - :subkeys - array of subkeys
-      #   - :can_encrypt, :can_sign, :can_certify - capability flags
-      #   - and many other fields
-      # @raise [Crypt::GPGME::Error] if the key listing operation fails
+      # @param pattern [String, Array<String>, nil] pattern(s) to match keys against, or nil for all keys
+      #   Can be a single string pattern or an array of string patterns
+      # @param secret [Integer] 0 for public keys, 1 for secret keys
+      # @return [Array<Hash>] array of key hashes
+      # @raise [Crypt::GPGME::Error] if the keylist operation fails
       #
-      # @example List all public keys
+      # @example List all keys
       #   keys = ctx.list_keys
       #
       # @example List keys matching a pattern
       #   keys = ctx.list_keys("alice@example.com")
       #
+      # @example List keys matching multiple patterns
+      #   keys = ctx.list_keys(["alice@example.com", "bob@example.com", "carol@example.com"])
+      #
       # @example List secret keys
       #   keys = ctx.list_keys(nil, 1)
       #
-      # @example List secret keys for a specific user
-      #   keys = ctx.list_keys("bob@example.com", 1)
+      # @example List secret keys for specific users
+      #   keys = ctx.list_keys(["alice@example.com", "bob@example.com"], 1)
       def list_keys(pattern = nil, secret = 0)
-        err = gpgme_op_keylist_start(@ctx.pointer, pattern, secret)
+        if pattern.is_a?(Array)
+          # Use gpgme_op_keylist_ext_start for multiple patterns
+          # Create a NULL-terminated array of string pointers
+          pattern_ptrs = pattern.map { |p| FFI::MemoryPointer.from_string(p.to_s) }
+          pattern_ptrs << nil  # NULL terminator
+
+          patterns_array = FFI::MemoryPointer.new(:pointer, pattern_ptrs.size)
+          pattern_ptrs.each_with_index do |ptr, i|
+            patterns_array[i].put_pointer(0, ptr)
+          end
+
+          err = gpgme_op_keylist_ext_start(@ctx.pointer, patterns_array, secret, 0)
+        else
+          # Use gpgme_op_keylist_start for single pattern or nil
+          err = gpgme_op_keylist_start(@ctx.pointer, pattern, secret)
+        end
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)

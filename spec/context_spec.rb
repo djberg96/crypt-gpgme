@@ -656,5 +656,35 @@ RSpec.describe Crypt::GPGME::Context do
     example 'accepts a secret argument' do
       expect { subject.list_keys(nil, 1) }.not_to raise_error
     end
+
+    example 'accepts an array of patterns' do
+      expect { subject.list_keys(["test1", "test2"]) }.not_to raise_error
+    end
+
+    example 'returns an array when given array of patterns' do
+      result = subject.list_keys(["test1", "test2"])
+      expect(result).to be_an(Array)
+    end
+
+    example 'accepts array of patterns with secret argument' do
+      expect { subject.list_keys(["test1", "test2"], 1) }.not_to raise_error
+    end
+
+    example 'handles empty array of patterns' do
+      expect { subject.list_keys([]) }.not_to raise_error
+    end
+
+    example 'handles array with single pattern' do
+      expect { subject.list_keys(["test"]) }.not_to raise_error
+      result = subject.list_keys(["test"])
+      expect(result).to be_an(Array)
+    end
+
+    example 'handles array with multiple patterns' do
+      patterns = ["alice@example.com", "bob@example.com", "carol@example.com"]
+      expect { subject.list_keys(patterns) }.not_to raise_error
+      result = subject.list_keys(patterns)
+      expect(result).to be_an(Array)
+    end
   end
 end
