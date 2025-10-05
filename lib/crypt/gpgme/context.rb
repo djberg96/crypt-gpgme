@@ -1303,6 +1303,78 @@ module Crypt
 
         nil
       end
+
+      # Sets a flag on a user ID (synchronous).
+      #
+      # This method sets or clears a flag on a specific user ID of a key.
+      # The most common flag is "primary" to mark a UID as the primary one.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param userid [String] the user ID to modify (must match exactly)
+      # @param flag [String] the flag name to set ("primary" is most common)
+      # @param value [String, nil] the flag value: "1" to set, "0" to clear, or nil to clear
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Set a UID as primary
+      #   key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.set_uid_flag(key, "Alice Smith <alice@work.com>", "primary", "1")
+      #
+      # @example Clear primary flag
+      #   ctx.set_uid_flag(key, "Alice Smith <alice@work.com>", "primary", "0")
+      #
+      # @example Mark primary UID (alternative syntax)
+      #   ctx.set_uid_flag(key, "Alice Smith <alice@personal.net>", "primary", nil)
+      #
+      # @note This operation requires the key's passphrase
+      # @note The user ID string must match exactly
+      # @note The key must be a secret key
+      # @note Setting a UID as primary automatically clears the primary flag from other UIDs
+      def set_uid_flag(key, userid, flag, value = nil)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        value_str = value.nil? ? nil : value.to_s
+        err = gpgme_op_set_uid_flag(@ctx.pointer, key_struct, userid, flag, value_str)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_set_uid_flag failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Sets a flag on a user ID (asynchronous).
+      #
+      # This is the asynchronous version of {#set_uid_flag}. It initiates the
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete.
+      #
+      # @param key [Crypt::GPGME::Key, Structs::Key] the key to modify
+      # @param userid [String] the user ID to modify
+      # @param flag [String] the flag name to set
+      # @param value [String, nil] the flag value
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Set primary UID asynchronously
+      #   key = ctx.list_keys("alice@example.com", 1).first
+      #   ctx.set_uid_flag_start(key, "Alice <alice@work.com>", "primary", "1")
+      #   ctx.wait
+      #
+      # @note This operation requires the key's passphrase
+      # @note The key must be a secret key
+      def set_uid_flag_start(key, userid, flag, value = nil)
+        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
+        value_str = value.nil? ? nil : value.to_s
+        err = gpgme_op_set_uid_flag_start(@ctx.pointer, key_struct, userid, flag, value_str)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_set_uid_flag_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end

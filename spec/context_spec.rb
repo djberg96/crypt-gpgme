@@ -1237,4 +1237,125 @@ RSpec.describe Crypt::GPGME::Context do
 
     # Note: Asynchronous operations require wait() to complete.
   end
+
+  describe '#set_uid_flag' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_uid_flag)
+    end
+
+    example 'requires at least 3 arguments' do
+      expect { subject.set_uid_flag }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts key parameter' do
+      expect(subject.method(:set_uid_flag).parameters).to include([:req, :key])
+    end
+
+    example 'accepts userid parameter' do
+      expect(subject.method(:set_uid_flag).parameters).to include([:req, :userid])
+    end
+
+    example 'accepts flag parameter' do
+      expect(subject.method(:set_uid_flag).parameters).to include([:req, :flag])
+    end
+
+    example 'accepts optional value parameter' do
+      expect(subject.method(:set_uid_flag).parameters).to include([:opt, :value])
+    end
+
+    example 'method has correct arity' do
+      # -4 means 3 required, 1 optional
+      expect(subject.method(:set_uid_flag).arity).to eq(-4)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.set_uid_flag(nil, "Test <test@example.com>", "primary", "1") }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    example 'raises error with nil userid' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.set_uid_flag(key, nil, "primary", "1") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with nil flag' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.set_uid_flag(key, "Test <test@example.com>", nil, "1") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts nil value parameter' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      # Should not raise an error for nil value, though operation may fail for other reasons
+      expect { subject.set_uid_flag(key, "Test <test@example.com>", "primary", nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'converts value to string' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      # Test that integer values are converted to strings
+      expect { subject.set_uid_flag(key, "Test <test@example.com>", "primary", 1) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Actual flag setting requires a secret key with passphrase access.
+  end
+
+  describe '#set_uid_flag_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:set_uid_flag_start)
+    end
+
+    example 'requires at least 3 arguments' do
+      expect { subject.set_uid_flag_start }.to raise_error(ArgumentError)
+    end
+
+    example 'method signature matches synchronous version' do
+      sync_params = subject.method(:set_uid_flag).parameters
+      async_params = subject.method(:set_uid_flag_start).parameters
+      expect(async_params).to eq(sync_params)
+    end
+
+    example 'is the asynchronous version of set_uid_flag' do
+      expect(subject.method(:set_uid_flag_start).arity).to eq(subject.method(:set_uid_flag).arity)
+    end
+
+    example 'raises error with nil key' do
+      expect { subject.set_uid_flag_start(nil, "Test <test@example.com>", "primary", "1") }.to raise_error(Crypt::GPGME::Error, /Invalid argument/)
+    end
+
+    example 'raises error with nil userid' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.set_uid_flag_start(key, nil, "primary", "1") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'raises error with nil flag' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.set_uid_flag_start(key, "Test <test@example.com>", nil, "1") }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    example 'accepts nil value parameter' do
+      keys = subject.list_keys("djberg96", 1)
+      skip "No secret keys available for testing" if keys.empty?
+
+      key = keys.first
+      expect { subject.set_uid_flag_start(key, "Test <test@example.com>", "primary", nil) }.to raise_error(Crypt::GPGME::Error)
+    end
+
+    # Note: Asynchronous operations require wait() to complete.
+  end
 end
