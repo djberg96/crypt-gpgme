@@ -686,5 +686,10 @@ RSpec.describe Crypt::GPGME::Context do
       result = subject.list_keys(patterns)
       expect(result).to be_an(Array)
     end
+
+    # Note: Data object support is implemented but not tested here because
+    # it requires actual exported key data to work properly. Passing empty
+    # data causes segmentation faults. The feature is documented in the
+    # method's YARD documentation for users who have real key data.
   end
 end

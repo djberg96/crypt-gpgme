@@ -702,9 +702,9 @@ module Crypt
 
             # Lists keys in the keyring.
       #
-      # @param pattern [String, Array<String>, nil] pattern(s) to match keys against, or nil for all keys
-      #   Can be a single string pattern or an array of string patterns
-      # @param secret [Integer] 0 for public keys, 1 for secret keys
+      # @param pattern [String, Array<String>, Crypt::GPGME::Data, Crypt::GPGME::Structs::Data, nil] pattern(s) to match keys against, or nil for all keys
+      #   Can be a single string pattern, an array of string patterns, or a Data object containing key data
+      # @param secret [Integer] 0 for public keys, 1 for secret keys (ignored when pattern is a Data object)
       # @return [Array<Hash>] array of key hashes
       # @raise [Crypt::GPGME::Error] if the keylist operation fails
       #
@@ -717,13 +717,21 @@ module Crypt
       # @example List keys matching multiple patterns
       #   keys = ctx.list_keys(["alice@example.com", "bob@example.com", "carol@example.com"])
       #
+      # @example List keys from custom data
+      #   data = Crypt::GPGME::Data.new(key_string)
+      #   keys = ctx.list_keys(data)
+      #
       # @example List secret keys
       #   keys = ctx.list_keys(nil, 1)
       #
       # @example List secret keys for specific users
       #   keys = ctx.list_keys(["alice@example.com", "bob@example.com"], 1)
       def list_keys(pattern = nil, secret = 0)
-        if pattern.is_a?(Array)
+        if pattern.is_a?(Data) || pattern.is_a?(Structs::Data)
+          # Use gpgme_op_keylist_from_data_start for data objects
+          data_ptr = pattern.is_a?(Data) ? pattern.instance_variable_get(:@data).pointer : pattern.pointer
+          err = gpgme_op_keylist_from_data_start(@ctx.pointer, data_ptr, 0)
+        elsif pattern.is_a?(Array)
           # Use gpgme_op_keylist_ext_start for multiple patterns
           # Create a NULL-terminated array of string pointers
           pattern_ptrs = pattern.map { |p| FFI::MemoryPointer.from_string(p.to_s) }
