@@ -1566,10 +1566,7 @@ module Crypt
         raise Crypt::GPGME::Error, "params cannot be nil" if params.nil?
         raise Crypt::GPGME::Error, "params cannot be empty" if params.to_s.empty?
 
-        pub_ptr = public_key ? (public_key.is_a?(Data) ? public_key.instance_variable_get(:@data).pointer : public_key.pointer) : nil
-        sec_ptr = secret_key ? (secret_key.is_a?(Data) ? secret_key.instance_variable_get(:@data).pointer : secret_key.pointer) : nil
-
-        err = gpgme_op_genkey_start(@ctx.pointer, params, pub_ptr, sec_ptr)
+        err = gpgme_op_genkey_start(@ctx.pointer, params, public_key, secret_key)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1622,8 +1619,7 @@ module Crypt
         # Validate parameters
         raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_keysign(@ctx.pointer, key_struct, userid, expires, flags)
+        err = gpgme_op_keysign(@ctx.pointer, key, userid, expires, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1659,8 +1655,7 @@ module Crypt
         # Validate parameters
         raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_keysign_start(@ctx.pointer, key_struct, userid, expires, flags)
+        err = gpgme_op_keysign_start(@ctx.pointer, key, userid, expires, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1705,18 +1700,7 @@ module Crypt
         # Validate parameters
         raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-
-        # Get signing key struct, handle nil case
-        signing_key_struct = if signing_key.nil?
-          nil
-        elsif signing_key.is_a?(Structs::Key)
-          signing_key
-        else
-          signing_key.instance_variable_get(:@key)
-        end
-
-        err = gpgme_op_revsig(@ctx.pointer, key_struct, signing_key_struct, userid, flags)
+        err = gpgme_op_revsig(@ctx.pointer, key, signing_key_struct, userid, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1750,18 +1734,7 @@ module Crypt
         # Validate parameters
         raise Crypt::GPGME::Error, "key cannot be nil" if key.nil?
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-
-        # Get signing key struct, handle nil case
-        signing_key_struct = if signing_key.nil?
-          nil
-        elsif signing_key.is_a?(Structs::Key)
-          signing_key
-        else
-          signing_key.instance_variable_get(:@key)
-        end
-
-        err = gpgme_op_revsig_start(@ctx.pointer, key_struct, signing_key_struct, userid, flags)
+        err = gpgme_op_revsig_start(@ctx.pointer, key, signing_key_struct, userid, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1816,7 +1789,7 @@ module Crypt
         # Validate parameters
         raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
 
-        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        data_ptr = keydata.is_a?(Data) ? keydata.data.pointer : keydata.pointer
         err = gpgme_op_export(@ctx.pointer, pattern, mode, data_ptr)
 
         if err != GPG_ERR_NO_ERROR
