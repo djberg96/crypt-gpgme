@@ -1427,9 +1427,8 @@ module Crypt
       # @note This operation requires the key's passphrase
       # @note The key must be a secret key
       def set_uid_flag_start(key, userid, flag, value = nil)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
         value_str = value.nil? ? nil : value.to_s
-        err = gpgme_op_set_uid_flag_start(@ctx.pointer, key_struct, userid, flag, value_str)
+        err = gpgme_op_set_uid_flag_start(@ctx.pointer, key, userid, flag, value_str)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1501,10 +1500,7 @@ module Crypt
         raise Crypt::GPGME::Error, "params cannot be nil" if params.nil?
         raise Crypt::GPGME::Error, "params cannot be empty" if params.to_s.empty?
 
-        pub_ptr = public_key ? (public_key.is_a?(Data) ? public_key.instance_variable_get(:@data).pointer : public_key.pointer) : nil
-        sec_ptr = secret_key ? (secret_key.is_a?(Data) ? secret_key.instance_variable_get(:@data).pointer : secret_key.pointer) : nil
-
-        err = gpgme_op_genkey(@ctx.pointer, params, pub_ptr, sec_ptr)
+        err = gpgme_op_genkey(@ctx.pointer, params, public_key, secret_key)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
