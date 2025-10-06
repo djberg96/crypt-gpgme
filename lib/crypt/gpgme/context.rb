@@ -1823,7 +1823,7 @@ module Crypt
         # Validate parameters
         raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
 
-        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        data_ptr = keydata.is_a?(Data) ? keydata.data.pointer : keydata.pointer
         err = gpgme_op_export_start(@ctx.pointer, pattern, mode, data_ptr)
 
         if err != GPG_ERR_NO_ERROR
@@ -1873,19 +1873,16 @@ module Crypt
         raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
         raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
 
-        # Convert keys to array of structs and create NULL-terminated array
-        key_structs = keys.map do |key|
-          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        end
-
         # Create a pointer array with NULL terminator
-        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
-        key_structs.each_with_index do |key_struct, i|
+        key_array = FFI::MemoryPointer.new(:pointer, keys.length + 1)
+
+        keys.each_with_index do |key_struct, i|
           key_array[i].put_pointer(0, key_struct)
         end
-        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
 
-        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        key_array[keys.length].put_pointer(0, nil) # NULL terminator
+
+        data_ptr = keydata.is_a?(Data) ? keydata.data.pointer : keydata.pointer
         err = gpgme_op_export_keys(@ctx.pointer, key_array, mode, data_ptr)
 
         if err != GPG_ERR_NO_ERROR
