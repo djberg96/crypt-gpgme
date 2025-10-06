@@ -1939,10 +1939,6 @@ module Crypt
         nil
       end
 
-      # TODO: Import methods commented out due to test failures with invalid key data
-      # These will be re-enabled once proper test data is available
-
-=begin
       # Imports keys from key data (synchronous).
       #
       # This method imports keys from a Data object containing key material
@@ -2000,30 +1996,9 @@ module Crypt
           raise Crypt::GPGME::Error, "Failed to get import result"
         end
 
-        # Parse the import result structure
-        # struct _gpgme_op_import_result has these integer fields:
-        # considered, no_user_id, imported, imported_rsa, unchanged,
-        # new_user_ids, new_sub_keys, new_signatures, new_revocations,
-        # secret_read, secret_imported, secret_unchanged, not_imported
-        # followed by a pointer to imports list
-
-        result = {}
-        ptr = result_ptr
-        result[:considered] = ptr.read_int; ptr += 4
-        result[:no_user_id] = ptr.read_int; ptr += 4
-        result[:imported] = ptr.read_int; ptr += 4
-        result[:imported_rsa] = ptr.read_int; ptr += 4
-        result[:unchanged] = ptr.read_int; ptr += 4
-        result[:new_user_ids] = ptr.read_int; ptr += 4
-        result[:new_sub_keys] = ptr.read_int; ptr += 4
-        result[:new_signatures] = ptr.read_int; ptr += 4
-        result[:new_revocations] = ptr.read_int; ptr += 4
-        result[:secret_read] = ptr.read_int; ptr += 4
-        result[:secret_imported] = ptr.read_int; ptr += 4
-        result[:secret_unchanged] = ptr.read_int; ptr += 4
-        result[:not_imported] = ptr.read_int
-
-        result
+        # Use the ImportResult struct to parse the result
+        import_result = Structs::ImportResult.new(result_ptr)
+        import_result.to_hash
       end
 
       # Imports keys from key data (asynchronous).
@@ -2104,24 +2079,9 @@ module Crypt
           raise Crypt::GPGME::Error, "Failed to get import result"
         end
 
-        # Wtf is AI doing here? I probably need a struct for this.
-        result = {}
-        ptr = result_ptr
-        result[:considered] = ptr.read_int; ptr += 4
-        result[:no_user_id] = ptr.read_int; ptr += 4
-        result[:imported] = ptr.read_int; ptr += 4
-        result[:imported_rsa] = ptr.read_int; ptr += 4
-        result[:unchanged] = ptr.read_int; ptr += 4
-        result[:new_user_ids] = ptr.read_int; ptr += 4
-        result[:new_sub_keys] = ptr.read_int; ptr += 4
-        result[:new_signatures] = ptr.read_int; ptr += 4
-        result[:new_revocations] = ptr.read_int; ptr += 4
-        result[:secret_read] = ptr.read_int; ptr += 4
-        result[:secret_imported] = ptr.read_int; ptr += 4
-        result[:secret_unchanged] = ptr.read_int; ptr += 4
-        result[:not_imported] = ptr.read_int
-
-        result
+        # Use the ImportResult struct to parse the result
+        import_result = Structs::ImportResult.new(result_ptr)
+        import_result.to_hash
       end
 
       # Imports keys by key objects (asynchronous).
@@ -2189,25 +2149,10 @@ module Crypt
           raise Crypt::GPGME::Error, "No import result available"
         end
 
-        result = {}
-        ptr = result_ptr
-        result[:considered] = ptr.read_int; ptr += 4
-        result[:no_user_id] = ptr.read_int; ptr += 4
-        result[:imported] = ptr.read_int; ptr += 4
-        result[:imported_rsa] = ptr.read_int; ptr += 4
-        result[:unchanged] = ptr.read_int; ptr += 4
-        result[:new_user_ids] = ptr.read_int; ptr += 4
-        result[:new_sub_keys] = ptr.read_int; ptr += 4
-        result[:new_signatures] = ptr.read_int; ptr += 4
-        result[:new_revocations] = ptr.read_int; ptr += 4
-        result[:secret_read] = ptr.read_int; ptr += 4
-        result[:secret_imported] = ptr.read_int; ptr += 4
-        result[:secret_unchanged] = ptr.read_int; ptr += 4
-        result[:not_imported] = ptr.read_int
-
-        result
+        # Use the ImportResult struct to parse the result
+        import_result = Structs::ImportResult.new(result_ptr)
+        import_result.to_hash
       end
-=end
 
       # Delete a key from the keyring.
       #
