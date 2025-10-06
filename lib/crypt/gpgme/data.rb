@@ -5,6 +5,7 @@ module Crypt
       include Crypt::GPGME::Functions
 
       attr_accessor :buffer_size
+      attr_accessor :data
 
       def initialize(obj, buffer_size = 4096)
         @buffer_size = buffer_size
