@@ -814,7 +814,7 @@ module Crypt
       def list_keys(pattern = nil, secret = 0, format = :hash)
         if pattern.is_a?(Data) || pattern.is_a?(Structs::Data)
           # Use gpgme_op_keylist_from_data_start for data objects
-          data_ptr = pattern.is_a?(Data) ? pattern.instance_variable_get(:@data).pointer : pattern.pointer
+          data_ptr = pattern.pointer
           err = gpgme_op_keylist_from_data_start(@ctx.pointer, data_ptr, 0)
         elsif pattern.is_a?(Array)
           # Use gpgme_op_keylist_ext_start for multiple patterns
@@ -891,8 +891,7 @@ module Crypt
       # @note This operation requires the key's passphrase
       # @note Time is relative to the current moment, not absolute
       def set_expire(key, expires, subfprs = nil, reserved = 0)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_setexpire(@ctx.pointer, key_struct, expires, subfprs, reserved)
+        err = gpgme_op_setexpire(@ctx.pointer, key, expires, subfprs, reserved)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -924,8 +923,7 @@ module Crypt
       # @note This operation requires the key's passphrase
       # @note Time is relative to the current moment, not absolute
       def set_expire_start(key, expires, subfprs = nil, reserved = 0)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_setexpire_start(@ctx.pointer, key_struct, expires, subfprs, reserved)
+        err = gpgme_op_setexpire_start(@ctx.pointer, key, expires, subfprs, reserved)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -969,8 +967,6 @@ module Crypt
       #   - "full" (4): Fully trust this key owner to certify keys
       #   - "ultimate" (5): Ultimate trust (typically for your own keys)
       def set_owner_trust(key, value)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-
         # Convert value to string format expected by GPGME
         value_str = case value
                     when String
@@ -990,7 +986,7 @@ module Crypt
                       raise ArgumentError, "Value must be a String or Integer, got #{value.class}"
                     end
 
-        err = gpgme_op_setownertrust(@ctx.pointer, key_struct, value_str)
+        err = gpgme_op_setownertrust(@ctx.pointer, key, value_str)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1019,8 +1015,6 @@ module Crypt
       # @note This operation is OpenPGP-specific
       # @see #set_owner_trust for trust level descriptions
       def set_owner_trust_start(key, value)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-
         # Convert value to string format expected by GPGME
         value_str = case value
                     when String
@@ -1040,7 +1034,7 @@ module Crypt
                       raise ArgumentError, "Value must be a String or Integer, got #{value.class}"
                     end
 
-        err = gpgme_op_setownertrust_start(@ctx.pointer, key_struct, value_str)
+        err = gpgme_op_setownertrust_start(@ctx.pointer, key, value_str)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
