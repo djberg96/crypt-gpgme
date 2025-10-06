@@ -1078,13 +1078,7 @@ module Crypt
       # @note Default flags enable signing and certification
       def create_key(userid, algo = nil, reserved = 0, expires = 0, certkey = nil, flags = 0)
         algo ||= "future-default"
-        certkey_struct = if certkey
-                           certkey.is_a?(Structs::Key) ? certkey : certkey.instance_variable_get(:@key)
-                         else
-                           nil
-                         end
-
-        err = gpgme_op_createkey(@ctx.pointer, userid, algo, reserved, expires, certkey_struct, flags)
+        err = gpgme_op_createkey(@ctx.pointer, userid, algo, reserved, expires, certkey, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1126,13 +1120,7 @@ module Crypt
       # @see #create_key for parameter descriptions and examples
       def create_key_start(userid, algo = nil, reserved = 0, expires = 0, certkey = nil, flags = 0)
         algo ||= "future-default"
-        certkey_struct = if certkey
-                           certkey.is_a?(Structs::Key) ? certkey : certkey.instance_variable_get(:@key)
-                         else
-                           nil
-                         end
-
-        err = gpgme_op_createkey_start(@ctx.pointer, userid, algo, reserved, expires, certkey_struct, flags)
+        err = gpgme_op_createkey_start(@ctx.pointer, userid, algo, reserved, expires, certkey, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1176,9 +1164,7 @@ module Crypt
       # @note Common use cases: add encryption subkey to signing-only key, add subkeys with different expirations
       def create_subkey(key, algo = nil, reserved = 0, expires = 0, flags = 0)
         algo ||= "future-default"
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-
-        err = gpgme_op_createsubkey(@ctx.pointer, key_struct, algo, reserved, expires, flags)
+        err = gpgme_op_createsubkey(@ctx.pointer, key, algo, reserved, expires, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1221,9 +1207,7 @@ module Crypt
       # @see #create_subkey for parameter descriptions and examples
       def create_subkey_start(key, algo = nil, reserved = 0, expires = 0, flags = 0)
         algo ||= "future-default"
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-
-        err = gpgme_op_createsubkey_start(@ctx.pointer, key_struct, algo, reserved, expires, flags)
+        err = gpgme_op_createsubkey_start(@ctx.pointer, key, algo, reserved, expires, flags)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
