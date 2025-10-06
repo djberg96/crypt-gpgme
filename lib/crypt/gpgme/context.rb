@@ -1358,8 +1358,7 @@ module Crypt
       # @note This operation requires the key's passphrase
       # @note The key must be a secret key
       def revoke_uid_start(key, userid, reserved = 0)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_revuid_start(@ctx.pointer, key_struct, userid, reserved)
+        err = gpgme_op_revuid_start(@ctx.pointer, key, userid, reserved)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1396,9 +1395,8 @@ module Crypt
       # @note The key must be a secret key
       # @note Setting a UID as primary automatically clears the primary flag from other UIDs
       def set_uid_flag(key, userid, flag, value = nil)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
         value_str = value.nil? ? nil : value.to_s
-        err = gpgme_op_set_uid_flag(@ctx.pointer, key_struct, userid, flag, value_str)
+        err = gpgme_op_set_uid_flag(@ctx.pointer, key, userid, flag, value_str)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
