@@ -57,6 +57,61 @@ module Crypt
         )
       end
 
+      # gpgme_signature_t
+      class Signature < FFI::BitStruct
+        layout(
+          :next, :pointer,
+          :summary, :uint,
+          :fpr, :string,
+          :status, :uint,
+          :notations, :pointer, # SigNotation
+          :timestamp, :ulong,
+          :exp_timestamp, :ulong,
+          :_properties, :uint, # bit fields
+          :validity, :uint,
+          :validity_reason, :uint,
+          :pubkey_algo, :uint,
+          :hash_algo, :uint,
+          :pka_address, :string,
+          :key, :pointer, # gpgme_key_t - pointer to Key struct
+          :_unused, :pointer
+        )
+
+        bit_fields(:_properties,
+          :wrong_key_usage, 1,
+          :pka_trust, 2,
+          :chain_model, 1,
+          :is_de_vs, 1,
+          :_rfu, 27
+        )
+      end
+
+      # gpgme_verify_result_t
+      class VerifyResult < FFI::Struct
+        layout(
+          :signatures, :pointer, # pointer to Signature struct
+          :file_name, :string,
+          :is_mime, :uint,
+          :_unused, :uint
+        )
+
+        def signatures_array
+          return [] if self[:signatures].null?
+
+          sigs = []
+          sig_ptr = self[:signatures]
+
+          until sig_ptr.null?
+            sig = Signature.new(sig_ptr)
+            sigs << sig.to_hash
+            sig_ptr = sig[:next]
+            break if sig_ptr.null?
+          end
+
+          sigs
+        end
+      end
+
       class Data < FFI::Struct
         layout(:dh, :pointer)
 

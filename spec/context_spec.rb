@@ -2691,4 +2691,103 @@ RSpec.describe Crypt::GPGME::Context do
 
     # Note: This method provides detailed information about the decryption operation
   end
+
+  describe '#verify' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:verify)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.verify }.to raise_error(ArgumentError)
+    end
+
+    example 'accepts sig parameter' do
+      expect(subject.method(:verify).parameters).to include([:req, :sig])
+    end
+
+    example 'accepts optional signed_text parameter' do
+      expect(subject.method(:verify).parameters).to include([:opt, :signed_text])
+    end
+
+    example 'accepts optional plain parameter' do
+      expect(subject.method(:verify).parameters).to include([:opt, :plain])
+    end
+
+    example 'raises error with nil sig' do
+      expect { subject.verify(nil) }.to raise_error(ArgumentError, /sig cannot be nil/)
+    end
+
+    example 'returns a hash' do
+      skip "Requires valid signature data for testing"
+      # Would need actual signature data:
+      # sig_data = Crypt::GPGME::Data.new("test.sig")
+      # text_data = Crypt::GPGME::Data.new("test.txt")
+      # result = subject.verify(sig_data, text_data)
+      # expect(result).to be_a(Hash)
+    end
+
+    example 'result contains signatures array' do
+      skip "Requires valid signature data for testing"
+      # result = subject.verify(sig_data, text_data)
+      # expect(result[:signatures]).to be_an(Array)
+    end
+  end
+
+  describe '#verify_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:verify_start)
+    end
+
+    example 'is the asynchronous version of verify' do
+      sync_params = subject.method(:verify).parameters
+      async_params = subject.method(:verify_start).parameters
+      expect(sync_params).to eq(async_params)
+    end
+
+    example 'requires at least 1 argument' do
+      expect { subject.verify_start }.to raise_error(ArgumentError)
+    end
+
+    example 'raises error with nil sig' do
+      expect { subject.verify_start(nil) }.to raise_error(ArgumentError, /sig cannot be nil/)
+    end
+
+    example 'returns nil on success' do
+      skip "Requires valid signature data and would hang without wait"
+      # sig_data = Crypt::GPGME::Data.new("test.sig")
+      # text_data = Crypt::GPGME::Data.new("test.txt")
+      # result = subject.verify_start(sig_data, text_data)
+      # expect(result).to be_nil
+    end
+  end
+
+  describe '#verify_result' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:verify_result)
+    end
+
+    example 'requires no arguments' do
+      expect(subject.method(:verify_result).arity).to eq(0)
+    end
+
+    example 'raises error when called without prior verify' do
+      skip "Would hang or error - needs valid verification to have occurred"
+      # expect { subject.verify_result }.to raise_error(Crypt::GPGME::Error, /No verification result/)
+    end
+
+    example 'returns a hash after verify' do
+      skip "Requires valid signature data for testing"
+      # sig_data = Crypt::GPGME::Data.new("test.sig")
+      # text_data = Crypt::GPGME::Data.new("test.txt")
+      # subject.verify(sig_data, text_data)
+      # result = subject.verify_result
+      # expect(result).to be_a(Hash)
+    end
+
+    example 'result contains signatures array' do
+      skip "Requires valid signature data for testing"
+      # result = subject.verify_result
+      # expect(result[:signatures]).to be_an(Array)
+    end
+  end
 end

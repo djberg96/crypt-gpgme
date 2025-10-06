@@ -2566,6 +2566,118 @@ module Crypt
 
         result
       end
+
+      # Verify a signature (synchronous).
+      #
+      # This method verifies a signature. There are three verification modes:
+      # 1. Detached signature: sig contains signature, signed_text contains signed data, plain is nil
+      # 2. Normal signature: sig contains signature+data, signed_text is nil, plain receives verified data
+      # 3. Cleartext signature: sig contains cleartext signed message, signed_text is nil, plain receives verified data
+      #
+      # @param sig [Data, Structs::Data] signature data
+      # @param signed_text [Data, Structs::Data, nil] signed data (for detached signatures) or nil
+      # @param plain [Data, Structs::Data, nil] output buffer for verified data or nil
+      # @return [Hash] verification result with signature information
+      # @raise [Crypt::GPGME::Error] if verification fails
+      #
+      # @example Verify a detached signature
+      #   sig_data = Crypt::GPGME::Data.new("message.sig")
+      #   text_data = Crypt::GPGME::Data.new("message.txt")
+      #   result = ctx.verify(sig_data, text_data, nil)
+      #   puts "Valid: #{result[:signatures].first[:status] == 0}"
+      #
+      # @example Verify a normal signature
+      #   sig_data = Crypt::GPGME::Data.new("message.gpg")
+      #   plain = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      #   result = ctx.verify(sig_data, nil, plain)
+      #   puts plain.to_s # verified content
+      #
+      def verify(sig, signed_text = nil, plain = nil)
+        raise ArgumentError, "sig cannot be nil" if sig.nil?
+
+        sig_ptr = sig.respond_to?(:pointer) ? sig.pointer : sig[:dh]
+        signed_text_ptr = signed_text ? (signed_text.respond_to?(:pointer) ? signed_text.pointer : signed_text[:dh]) : nil
+        plain_ptr = plain ? (plain.respond_to?(:pointer) ? plain.pointer : plain[:dh]) : nil
+
+        err = gpgme_op_verify(@ctx.pointer, sig_ptr, signed_text_ptr, plain_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_verify failed: #{errstr}"
+        end
+
+        verify_result
+      end
+
+      # Verify a signature (asynchronous).
+      #
+      # This is the asynchronous version of {#verify}. It initiates the verification
+      # operation but returns immediately without waiting for completion.
+      # Use {#wait} to wait for the operation to complete, then call {#verify_result}
+      # to get the verification result.
+      #
+      # @param sig [Data, Structs::Data] signature data
+      # @param signed_text [Data, Structs::Data, nil] signed data (for detached signatures) or nil
+      # @param plain [Data, Structs::Data, nil] output buffer for verified data or nil
+      # @return [void]
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Verify a signature asynchronously
+      #   sig_data = Crypt::GPGME::Data.new("message.sig")
+      #   text_data = Crypt::GPGME::Data.new("message.txt")
+      #   ctx.verify_start(sig_data, text_data, nil)
+      #   ctx.wait
+      #   result = ctx.verify_result
+      #
+      def verify_start(sig, signed_text = nil, plain = nil)
+        raise ArgumentError, "sig cannot be nil" if sig.nil?
+
+        sig_ptr = sig.respond_to?(:pointer) ? sig.pointer : sig[:dh]
+        signed_text_ptr = signed_text ? (signed_text.respond_to?(:pointer) ? signed_text.pointer : signed_text[:dh]) : nil
+        plain_ptr = plain ? (plain.respond_to?(:pointer) ? plain.pointer : plain[:dh]) : nil
+
+        err = gpgme_op_verify_start(@ctx.pointer, sig_ptr, signed_text_ptr, plain_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_verify_start failed: #{errstr}"
+        end
+
+        nil
+      end
+
+      # Get the result of the last verification operation.
+      #
+      # This method retrieves the verification result from the last verify operation
+      # (whether synchronous or asynchronous). The result includes information about
+      # each signature found in the verified data.
+      #
+      # @return [Hash] verification result with signature information
+      # @raise [Crypt::GPGME::Error] if no verification result is available
+      #
+      # @example Get result after verification
+      #   result = ctx.verify_result
+      #   result[:signatures].each do |sig|
+      #     puts "Fingerprint: #{sig[:fpr]}"
+      #     puts "Status: #{sig[:status]}"
+      #     puts "Valid: #{sig[:status] == 0}"
+      #   end
+      #
+      def verify_result
+        result_ptr = gpgme_op_verify_result(@ctx.pointer)
+
+        if result_ptr.null?
+          raise Crypt::GPGME::Error, "No verification result available"
+        end
+
+        verify_result = Structs::VerifyResult.new(result_ptr)
+
+        {
+          signatures: verify_result.signatures_array,
+          file_name: verify_result[:file_name],
+          is_mime: verify_result[:is_mime]
+        }
+      end
     end
   end
 end
