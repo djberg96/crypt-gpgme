@@ -27,6 +27,36 @@ module Crypt
         end
       end
 
+      class ImportStatus < FFI::Struct
+        layout(
+          :next, :pointer,
+          :fpr, :string,
+          :result, :uint,
+          :status, :uint
+        )
+      end
+
+      class ImportResult < FFI::Struct
+        layout(
+          :considered, :int,
+          :no_user_id, :int,
+          :imported, :int,
+          :imported_rsa, :int,
+          :unchanged, :int,
+          :new_user_ids, :int,
+          :new_sub_keys, :int,
+          :new_signatures, :int,
+          :new_revocations, :int,
+          :secret_read, :int,
+          :secret_imported, :int,
+          :secret_unchanged, :int,
+          :skipped_new_keys, :int,
+          :not_imported, :int,
+          :imports, ImportStatus,
+          :skipped_v3_keys, :int
+        )
+      end
+
       class Data < FFI::Struct
         layout(:dh, :pointer)
 
