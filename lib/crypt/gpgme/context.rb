@@ -1985,7 +1985,7 @@ module Crypt
       def import_keys(keydata)
         raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
 
-        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        data_ptr = keydata.is_a?(Data) ? keydata.data.pointer : keydata.pointer
         err = gpgme_op_import(@ctx.pointer, data_ptr)
 
         if err != GPG_ERR_NO_ERROR
@@ -2049,7 +2049,7 @@ module Crypt
       def import_keys_start(keydata)
         raise Crypt::GPGME::Error, "keydata cannot be nil" if keydata.nil?
 
-        data_ptr = keydata.is_a?(Data) ? keydata.instance_variable_get(:@data).pointer : keydata.pointer
+        data_ptr = keydata.is_a?(Data) ? keydata.data.pointer : keydata.pointer
         err = gpgme_op_import_start(@ctx.pointer, data_ptr)
 
         if err != GPG_ERR_NO_ERROR
@@ -2081,17 +2081,14 @@ module Crypt
         raise Crypt::GPGME::Error, "keys cannot be nil" if keys.nil?
         raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
 
-        # Convert keys to array of structs and create NULL-terminated array
-        key_structs = keys.map do |key|
-          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        end
-
         # Create a pointer array with NULL terminator
-        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
-        key_structs.each_with_index do |key_struct, i|
+        key_array = FFI::MemoryPointer.new(:pointer, keys.length + 1)
+
+        keys.each_with_index do |key_struct, i|
           key_array[i].put_pointer(0, key_struct)
         end
-        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
+
+        key_array[keys.length].put_pointer(0, nil) # NULL terminator
 
         err = gpgme_op_import_keys(@ctx.pointer, key_array)
 
@@ -2107,6 +2104,7 @@ module Crypt
           raise Crypt::GPGME::Error, "Failed to get import result"
         end
 
+        # Wtf is AI doing here? I probably need a struct for this.
         result = {}
         ptr = result_ptr
         result[:considered] = ptr.read_int; ptr += 4
@@ -2151,17 +2149,14 @@ module Crypt
         raise Crypt::GPGME::Error, "keys cannot be nil" if keys.nil?
         raise Crypt::GPGME::Error, "keys cannot be empty" if keys.empty?
 
-        # Convert keys to array of structs and create NULL-terminated array
-        key_structs = keys.map do |key|
-          key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        end
-
         # Create a pointer array with NULL terminator
-        key_array = FFI::MemoryPointer.new(:pointer, key_structs.length + 1)
-        key_structs.each_with_index do |key_struct, i|
+        key_array = FFI::MemoryPointer.new(:pointer, keys.length + 1)
+
+        keys.each_with_index do |key_struct, i|
           key_array[i].put_pointer(0, key_struct)
         end
-        key_array[key_structs.length].put_pointer(0, nil) # NULL terminator
+
+        key_array[keys.length].put_pointer(0, nil) # NULL terminator
 
         err = gpgme_op_import_keys_start(@ctx.pointer, key_array)
 
@@ -2256,11 +2251,9 @@ module Crypt
       #
       def delete_key(key, flags = 0)
         raise ArgumentError, "key cannot be nil" if key.nil?
+        raise TypeError, "key must be a Key object" unless key.is_a?(Structs::Key)
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        raise TypeError, "key must be a Key object" if key_struct.nil?
-
-        err = Functions.gpgme_op_delete(@ctx, key_struct, flags)
+        err = Functions.gpgme_op_delete(@ctx, key, flags)
 
         if err != 0
           raise SystemCallError.new(Functions.gpgme_strerror(err), err)
@@ -2302,9 +2295,7 @@ module Crypt
       #
       def delete_key_start(key, flags = 0)
         raise ArgumentError, "key cannot be nil" if key.nil?
-
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        raise TypeError, "key must be a Key object" if key_struct.nil?
+        raise TypeError, "key must be a Key object" unless key.is_a?(Structs::Key)
 
         err = Functions.gpgme_op_delete_start(@ctx, key_struct, flags)
 
@@ -2349,11 +2340,9 @@ module Crypt
       #
       def change_password(key, flags = 0)
         raise ArgumentError, "key cannot be nil" if key.nil?
+        raise TypeError, "key must be a Key object" unless key.is_a?(Structs::Key)
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        raise TypeError, "key must be a Key object" if key_struct.nil?
-
-        err = Functions.gpgme_op_passwd(@ctx, key_struct, flags)
+        err = Functions.gpgme_op_passwd(@ctx, key, flags)
 
         if err != 0
           raise SystemCallError.new(Functions.gpgme_strerror(err), err)
@@ -2406,11 +2395,9 @@ module Crypt
       #
       def change_password_start(key, flags = 0)
         raise ArgumentError, "key cannot be nil" if key.nil?
+        raise TypeError, "key must be a Key object" unless key.is_a?(Structs::Key)
 
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        raise TypeError, "key must be a Key object" if key_struct.nil?
-
-        err = Functions.gpgme_op_passwd_start(@ctx, key_struct, flags)
+        err = Functions.gpgme_op_passwd_start(@ctx, key, flags)
 
         if err != 0
           raise SystemCallError.new(Functions.gpgme_strerror(err), err)
@@ -2472,8 +2459,8 @@ module Crypt
         raise ArgumentError, "cipher cannot be nil" if cipher.nil?
         raise ArgumentError, "plain cannot be nil" if plain.nil?
 
-        cipher_ptr = cipher.is_a?(Data) ? cipher.instance_variable_get(:@data).pointer : cipher.pointer
-        plain_ptr = plain.is_a?(Data) ? plain.instance_variable_get(:@data).pointer : plain.pointer
+        cipher_ptr = cipher.is_a?(Data) ? cipher.data.pointer : cipher.pointer
+        plain_ptr = plain.is_a?(Data) ? plain.data.pointer : plain.pointer
 
         err = Functions.gpgme_op_decrypt(@ctx, cipher_ptr, plain_ptr)
 
@@ -2522,8 +2509,8 @@ module Crypt
         raise ArgumentError, "cipher cannot be nil" if cipher.nil?
         raise ArgumentError, "plain cannot be nil" if plain.nil?
 
-        cipher_ptr = cipher.is_a?(Data) ? cipher.instance_variable_get(:@data).pointer : cipher.pointer
-        plain_ptr = plain.is_a?(Data) ? plain.instance_variable_get(:@data).pointer : plain.pointer
+        cipher_ptr = cipher.is_a?(Data) ? cipher.data.pointer : cipher.pointer
+        plain_ptr = plain.is_a?(Data) ? plain.data.pointer : plain.pointer
 
         err = Functions.gpgme_op_decrypt_start(@ctx, cipher_ptr, plain_ptr)
 
