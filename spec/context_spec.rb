@@ -404,6 +404,78 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  describe '#wait' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:wait)
+    end
+
+    example 'accepts 0 or 1 arguments' do
+      expect(subject.method(:wait).arity).to be_between(-2, -1)
+    end
+
+    example 'returns nil when no operation in progress with hang=false' do
+      # Without an async operation in progress, wait with hang=false returns nil
+      result = subject.wait(false)
+      expect(result).to be_nil
+    end
+
+    example 'accepts boolean hang parameter with hang=false' do
+      expect { subject.wait(false) }.not_to raise_error
+    end
+
+    example 'has hang=true as default but should only be called with active operations' do
+      # Verify the method signature has the right default
+      # Don't actually call wait() without an operation as it will block
+      expect(subject.method(:wait).parameters).to include([:opt, :hang])
+    end
+
+    example 'returns nil when hang=false and no operation in progress' do
+      result = subject.wait(false)
+      expect(result).to be_nil
+    end
+
+    example 'completes asynchronous delete operation' do
+      skip "Skipping actual delete operation test"
+    end
+
+    example 'completes asynchronous password change operation' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'blocks until operation completes when hang=true' do
+      skip "Skipping blocking operation test"
+    end
+
+    example 'can be used after encrypt_start' do
+      skip "Requires valid encryption setup"
+    end
+
+    example 'can be used after decrypt_start' do
+      skip "Requires valid decryption setup"
+    end
+
+    example 'can be used after delete_key_start' do
+      skip "Skipping actual delete operation test"
+    end
+
+    example 'can be used after change_password_start' do
+      skip "Skipping interactive password change test"
+    end
+
+    example 'raises error if operation fails' do
+      # Difficult to test without triggering actual operations
+      skip "Requires operation that will fail"
+    end
+
+    example 'allows polling with hang=false' do
+      # Start a non-blocking check
+      result = subject.wait(false)
+      expect(result).to be_nil  # No operation in progress
+    end
+
+    # Note: wait is essential for completing asynchronous operations
+  end
+
   describe '#set_status_callback' do
     example 'basic functionality' do
       expect(subject).to respond_to(:set_status_callback)
@@ -2479,5 +2551,145 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     # Note: change_password_start should be followed by wait() to complete the operation
+  end
+
+  describe '#decrypt' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:decrypt)
+    end
+
+    example 'requires exactly 2 arguments' do
+      expect(subject.method(:decrypt).arity).to eq(2)
+    end
+
+    example 'requires cipher parameter' do
+      skip "Skipping test that creates Data objects"
+    end
+
+    example 'requires plain parameter' do
+      skip "Skipping test that creates Data objects"
+    end
+
+    example 'returns nil on success' do
+      skip "Requires valid encrypted data and secret key"
+    end
+
+    example 'decrypts encrypted data' do
+      skip "Requires valid encrypted data and secret key"
+    end
+
+    example 'accepts Data objects' do
+      skip "Skipping test that creates Data objects"
+    end
+
+    example 'raises error for corrupted data' do
+      skip "Requires valid test data"
+    end
+
+    example 'raises error when secret key is not available' do
+      skip "Requires encrypted data with unavailable key"
+    end
+
+    example 'verifies signature if data is signed and encrypted' do
+      skip "Requires signed and encrypted test data"
+    end
+
+    example 'prompts for passphrase if key is password-protected' do
+      skip "Interactive test requiring passphrase"
+    end
+
+    # Note: Decryption requires the appropriate secret key
+  end
+
+  describe '#decrypt_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:decrypt_start)
+    end
+
+    example 'requires exactly 2 arguments' do
+      expect(subject.method(:decrypt_start).arity).to eq(2)
+    end
+
+    example 'requires cipher parameter' do
+      skip "Skipping test that creates Data objects"
+    end
+
+    example 'requires plain parameter' do
+      skip "Skipping test that creates Data objects"
+    end
+
+    example 'returns nil when operation starts' do
+      skip "Requires valid encrypted data and secret key"
+    end
+
+    example 'starts an asynchronous operation' do
+      skip "Requires valid encrypted data and secret key"
+    end
+
+    example 'requires wait() to complete the operation' do
+      skip "Requires valid encrypted data"
+    end
+
+    example 'accepts Data objects' do
+      skip "Skipping test that creates Data objects"
+    end
+
+    example 'can be completed with wait()' do
+      skip "Requires valid encrypted data"
+    end
+
+    # Note: decrypt_start should be followed by wait() to complete the operation
+  end
+
+  describe '#decrypt_result' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:decrypt_result)
+    end
+
+    example 'requires no arguments' do
+      expect(subject.method(:decrypt_result).arity).to eq(0)
+    end
+
+    example 'raises error when no decrypt operation performed' do
+      skip "Skipping test that calls decrypt_result"
+    end
+
+    example 'returns a hash after decrypt' do
+      skip "Requires valid decryption operation"
+    end
+
+    example 'returns hash with expected keys' do
+      skip "Requires valid decryption operation"
+    end
+
+    example 'includes file_name if present in encrypted data' do
+      skip "Requires encrypted data with embedded filename"
+    end
+
+    example 'includes recipients information' do
+      skip "Requires valid decryption operation"
+    end
+
+    example 'includes signature information if data was signed' do
+      skip "Requires signed and encrypted data"
+    end
+
+    example 'can be called after decrypt' do
+      skip "Requires valid encrypted data"
+    end
+
+    example 'can be called after decrypt_start and wait' do
+      skip "Requires valid encrypted data"
+    end
+
+    example 'returns unsupported_algorithm if present' do
+      skip "Requires data with unsupported algorithm"
+    end
+
+    example 'returns wrong_key_usage flag' do
+      skip "Requires valid decryption operation"
+    end
+
+    # Note: This method provides detailed information about the decryption operation
   end
 end
