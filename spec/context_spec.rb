@@ -1231,7 +1231,7 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     example 'raises error with nil userid' do
-      keys = subject.list_keys("djberg96", 1)
+      keys = subject.list_keys("djberg96", 1, :object)
       skip "No secret keys available for testing" if keys.empty?
 
       key = keys.first
@@ -1265,7 +1265,7 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     example 'raises error with nil userid' do
-      keys = subject.list_keys("djberg96", 1)
+      keys = subject.list_keys("djberg96", 1, :object)
       skip "No secret keys available for testing" if keys.empty?
 
       key = keys.first
@@ -1306,7 +1306,7 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     example 'raises error with nil userid' do
-      keys = subject.list_keys("djberg96", 1)
+      keys = subject.list_keys("djberg96", 1, :object)
       skip "No secret keys available for testing" if keys.empty?
 
       key = keys.first

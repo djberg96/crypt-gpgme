@@ -1267,8 +1267,7 @@ module Crypt
       # @note The user ID format should be "Name <email@example.com>" or "Name (Comment) <email@example.com>"
       # @note The key must be a secret key
       def add_uid(key, userid, reserved = 0)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_adduid(@ctx.pointer, key_struct, userid, reserved)
+        err = gpgme_op_adduid(@ctx.pointer, key, userid, reserved)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1298,8 +1297,7 @@ module Crypt
       # @note This operation requires the key's passphrase
       # @note The key must be a secret key
       def add_uid_start(key, userid, reserved = 0)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_adduid_start(@ctx.pointer, key_struct, userid, reserved)
+        err = gpgme_op_adduid_start(@ctx.pointer, key, userid, reserved)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -1330,8 +1328,7 @@ module Crypt
       # @note The key must be a secret key
       # @note Revoked user IDs remain on the key but are marked as invalid
       def revoke_uid(key, userid, reserved = 0)
-        key_struct = key.is_a?(Structs::Key) ? key : key.instance_variable_get(:@key)
-        err = gpgme_op_revuid(@ctx.pointer, key_struct, userid, reserved)
+        err = gpgme_op_revuid(@ctx.pointer, key, userid, reserved)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
