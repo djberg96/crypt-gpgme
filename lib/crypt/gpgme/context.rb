@@ -2678,6 +2678,121 @@ module Crypt
           is_mime: verify_result[:is_mime]
         }
       end
+
+      # Decrypt and verify signed encrypted data (synchronous).
+      #
+      # This method decrypts encrypted data and verifies any signatures in a single
+      # operation. It's equivalent to calling decrypt and verify separately, but more
+      # efficient. The encrypted data must have been created with both encryption and
+      # signing (e.g., gpg --sign --encrypt).
+      #
+      # After decryption and verification, you can call {#decrypt_result} to get
+      # decryption information and {#verify_result} to get signature verification information.
+      #
+      # @param cipher [Data, Structs::Data] Data object containing the encrypted and signed data
+      # @param plain [Data, Structs::Data] Data object to receive the decrypted plaintext
+      # @return [Hash] combined result with both decryption and verification information:
+      #   - :decrypt [Hash] decryption result from {#decrypt_result}
+      #   - :verify [Hash] verification result from {#verify_result}
+      # @raise [ArgumentError] if cipher or plain is nil
+      # @raise [Crypt::GPGME::Error] if the operation fails
+      #
+      # @example Decrypt and verify signed encrypted data
+      #   ctx = Crypt::GPGME::Context.new
+      #   cipher = Crypt::GPGME::Data.new(File.read("message.gpg"))
+      #   plain = Crypt::GPGME::Data.new
+      #   result = ctx.decrypt_verify(cipher, plain)
+      #   puts plain.to_s # decrypted content
+      #   puts "Signatures: #{result[:verify][:signatures].length}"
+      #   result[:verify][:signatures].each do |sig|
+      #     puts "  Fingerprint: #{sig[:fpr]}"
+      #     puts "  Status: #{sig[:status]}"
+      #     puts "  Valid: #{sig[:status] == 0}"
+      #   end
+      #
+      # @example Check decryption metadata
+      #   result = ctx.decrypt_verify(cipher, plain)
+      #   puts "Original filename: #{result[:decrypt][:file_name]}" if result[:decrypt][:file_name]
+      #
+      # @note Requires the appropriate secret key for decryption
+      # @note Requires the public key of the signer for verification
+      # @note Will prompt for passphrase if the secret key is password-protected
+      #
+      def decrypt_verify(cipher, plain)
+        raise ArgumentError, "cipher cannot be nil" if cipher.nil?
+        raise ArgumentError, "plain cannot be nil" if plain.nil?
+
+        cipher_ptr = cipher.respond_to?(:pointer) ? cipher.pointer : cipher[:dh]
+        plain_ptr = plain.respond_to?(:pointer) ? plain.pointer : plain[:dh]
+
+        err = gpgme_op_decrypt_verify(@ctx.pointer, cipher_ptr, plain_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_decrypt_verify failed: #{errstr}"
+        end
+
+        {
+          decrypt: decrypt_result,
+          verify: verify_result
+        }
+      end
+
+      # Decrypt and verify signed encrypted data (asynchronous).
+      #
+      # This is the asynchronous version of {#decrypt_verify}. It initiates the
+      # decryption and verification operation but returns immediately without waiting
+      # for completion. Use {#wait} to wait for the operation to complete, then call
+      # {#decrypt_result} and {#verify_result} to get the results.
+      #
+      # @param cipher [Data, Structs::Data] Data object containing the encrypted and signed data
+      # @param plain [Data, Structs::Data] Data object to receive the decrypted plaintext
+      # @return [void]
+      # @raise [ArgumentError] if cipher or plain is nil
+      # @raise [Crypt::GPGME::Error] if starting the operation fails
+      #
+      # @example Decrypt and verify asynchronously
+      #   ctx = Crypt::GPGME::Context.new
+      #   cipher = Crypt::GPGME::Data.new(encrypted_signed_data)
+      #   plain = Crypt::GPGME::Data.new
+      #   ctx.decrypt_verify_start(cipher, plain)
+      #   ctx.wait
+      #   decrypt_info = ctx.decrypt_result
+      #   verify_info = ctx.verify_result
+      #   puts "Decrypted: #{plain.to_s}"
+      #   puts "Signatures found: #{verify_info[:signatures].length}"
+      #
+      # @example Process results separately
+      #   ctx.decrypt_verify_start(cipher, plain)
+      #   ctx.wait
+      #   # Get decryption details
+      #   dec_result = ctx.decrypt_result
+      #   puts "File: #{dec_result[:file_name]}"
+      #   # Get verification details
+      #   ver_result = ctx.verify_result
+      #   ver_result[:signatures].each do |sig|
+      #     puts "Signed by: #{sig[:fpr]}"
+      #   end
+      #
+      # @note Must call wait() to complete the operation
+      # @note Call decrypt_result and verify_result separately after wait()
+      #
+      def decrypt_verify_start(cipher, plain)
+        raise ArgumentError, "cipher cannot be nil" if cipher.nil?
+        raise ArgumentError, "plain cannot be nil" if plain.nil?
+
+        cipher_ptr = cipher.respond_to?(:pointer) ? cipher.pointer : cipher[:dh]
+        plain_ptr = plain.respond_to?(:pointer) ? plain.pointer : plain[:dh]
+
+        err = gpgme_op_decrypt_verify_start(@ctx.pointer, cipher_ptr, plain_ptr)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_decrypt_verify_start failed: #{errstr}"
+        end
+
+        nil
+      end
     end
   end
 end

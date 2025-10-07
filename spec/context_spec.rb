@@ -2790,4 +2790,108 @@ RSpec.describe Crypt::GPGME::Context do
       # expect(result[:signatures]).to be_an(Array)
     end
   end
+
+  describe '#decrypt_verify' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:decrypt_verify)
+    end
+
+    example 'requires 2 arguments' do
+      expect(subject.method(:decrypt_verify).arity).to eq(2)
+    end
+
+    example 'accepts cipher parameter' do
+      expect(subject.method(:decrypt_verify).parameters).to include([:req, :cipher])
+    end
+
+    example 'accepts plain parameter' do
+      expect(subject.method(:decrypt_verify).parameters).to include([:req, :plain])
+    end
+
+    example 'raises error with nil cipher' do
+      plain = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.decrypt_verify(nil, plain) }.to raise_error(ArgumentError, /cipher cannot be nil/)
+    end
+
+    example 'raises error with nil plain' do
+      cipher = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.decrypt_verify(cipher, nil) }.to raise_error(ArgumentError, /plain cannot be nil/)
+    end
+
+    example 'returns a hash' do
+      skip "Requires valid encrypted and signed data for testing"
+      # Would need actual encrypted+signed data:
+      # cipher = Crypt::GPGME::Data.new(encrypted_signed_data)
+      # plain = Crypt::GPGME::Data.new
+      # result = subject.decrypt_verify(cipher, plain)
+      # expect(result).to be_a(Hash)
+    end
+
+    example 'result contains decrypt and verify keys' do
+      skip "Requires valid encrypted and signed data for testing"
+      # result = subject.decrypt_verify(cipher, plain)
+      # expect(result).to have_key(:decrypt)
+      # expect(result).to have_key(:verify)
+    end
+
+    example 'decrypt result contains expected fields' do
+      skip "Requires valid encrypted and signed data for testing"
+      # result = subject.decrypt_verify(cipher, plain)
+      # expect(result[:decrypt]).to have_key(:file_name)
+      # expect(result[:decrypt]).to have_key(:unsupported_algorithm)
+    end
+
+    example 'verify result contains signatures' do
+      skip "Requires valid encrypted and signed data for testing"
+      # result = subject.decrypt_verify(cipher, plain)
+      # expect(result[:verify]).to have_key(:signatures)
+      # expect(result[:verify][:signatures]).to be_an(Array)
+    end
+  end
+
+  describe '#decrypt_verify_start' do
+    example 'basic functionality' do
+      expect(subject).to respond_to(:decrypt_verify_start)
+    end
+
+    example 'is the asynchronous version of decrypt_verify' do
+      sync_params = subject.method(:decrypt_verify).parameters
+      async_params = subject.method(:decrypt_verify_start).parameters
+      expect(sync_params).to eq(async_params)
+    end
+
+    example 'requires 2 arguments' do
+      expect(subject.method(:decrypt_verify_start).arity).to eq(2)
+    end
+
+    example 'raises error with nil cipher' do
+      plain = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.decrypt_verify_start(nil, plain) }.to raise_error(ArgumentError, /cipher cannot be nil/)
+    end
+
+    example 'raises error with nil plain' do
+      cipher = Crypt::GPGME::Data.new(Crypt::GPGME::Structs::Data.new)
+      expect { subject.decrypt_verify_start(cipher, nil) }.to raise_error(ArgumentError, /plain cannot be nil/)
+    end
+
+    example 'returns nil on success' do
+      skip "Requires valid encrypted and signed data and would hang without wait"
+      # cipher = Crypt::GPGME::Data.new(encrypted_signed_data)
+      # plain = Crypt::GPGME::Data.new
+      # result = subject.decrypt_verify_start(cipher, plain)
+      # expect(result).to be_nil
+    end
+
+    example 'can retrieve results after wait' do
+      skip "Requires valid encrypted and signed data for testing"
+      # cipher = Crypt::GPGME::Data.new(encrypted_signed_data)
+      # plain = Crypt::GPGME::Data.new
+      # subject.decrypt_verify_start(cipher, plain)
+      # subject.wait
+      # decrypt_info = subject.decrypt_result
+      # verify_info = subject.verify_result
+      # expect(decrypt_info).to be_a(Hash)
+      # expect(verify_info).to be_a(Hash)
+    end
+  end
 end
