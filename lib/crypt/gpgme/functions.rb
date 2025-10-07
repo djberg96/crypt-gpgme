@@ -11,6 +11,8 @@ module Crypt
       typedef :uint, :gpgme_error_t
       typedef :pointer, :gpgme_data_t
 
+      attach_function :gpgme_addrspec_from_uid, [:string], :string
+
       # Progress callback: void (*callback)(void *opaque, const char *what, int type, int current, int total)
       callback :gpgme_progress_cb_t, [:pointer, :string, :int, :int, :int], :void
 

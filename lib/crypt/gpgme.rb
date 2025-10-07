@@ -52,6 +52,15 @@ module Crypt
           raise Error, "gpgme_set_global_flag failed"
         end
       end
+
+      # Return the mail address (called “addr-spec” in RFC-5322) from the string uid
+      # which is assumed to be a user id (called “address” in RFC-5322). All plain
+      # ASCII characters in the result are converted to lowercase.
+      #
+      def mail_address(uid)
+        raise TypeError unless uid.is_a?(String)
+        gpgme_addrspec_from_uid(uid)
+      end
     end
   end
 end
@@ -66,11 +75,12 @@ p Crypt::GPGME::Engine.check_version
 #p Crypt::GPGME::Structs::EngineInfo.size
 pp Crypt::GPGME::Engine.get_info
 =end
-#=begin
+
+=begin
 #p Crypt::GPGME.check_version
-ctx = Crypt::GPGME::Context.new
-fpr = "C9D8 3C01 0035 9499 0E2F  E6C6 3D41 5506 6C03 D7EB"
-ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS
+#ctx = Crypt::GPGME::Context.new
+#fpr = "C9D8 3C01 0035 9499 0E2F  E6C6 3D41 5506 6C03 D7EB"
+#ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS
 
 #sig = ctx.sign("hello world")
 #pp sig.to_hash
@@ -81,31 +91,35 @@ ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_
 #uid = hash[:uids].first
 
 #data = Crypt::GPGME::Data.new("hello world")
-filename = 'test.txt'
-file = File.open(filename)
+#filename = 'test.txt'
+#file = File.open(filename)
 
-data = Crypt::GPGME::Data.new(file.fileno)
+#data = Crypt::GPGME::Data.new(file.fileno)
 #data = Crypt::GPGME::Data.new(file)
 #pp data
-p data.to_s
-file.close
+#p data.to_s
+#file.close
 
 #pp uid[:signatures].map{ |h| h[:keyid] }
 #p ctx.protocol
 #ctx.protocol = Crypt::GPGME::GPGME_PROTOCOL_ASSUAN
-#p ctx.protocol
-#p ctx.get_engine_info
-#p ctx.armor?
-#ctx.armor = true
-#p ctx.armor?
-#p ctx.text_mode?
-#p ctx.pinentry_mode
-#p ctx.include_certs
-#p ctx.keylist_mode
-#p ctx.get_flag("redraw")
-#p ctx.get_flag("known-notations")
-#p ctx.get_flag("bogus")
-#p ctx.list_keys
-#=end
+=end
 
+=begin
+p ctx.protocol
+p ctx.get_engine_info
+p ctx.armor?
+ctx.armor = true
+p ctx.armor?
+p ctx.text_mode?
+p ctx.pinentry_mode
+p ctx.include_certs
+p ctx.keylist_mode
+p ctx.get_flag("redraw")
+p ctx.get_flag("known-notations")
+p ctx.get_flag("bogus")
+p ctx.list_keys
+=end
+  uid = "Daniel Berger (Personal Email) <djberg96@yahoo.com>"
+  p Crypt::GPGME.mail_address(uid)
 end
