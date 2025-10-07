@@ -118,9 +118,6 @@ module Crypt
       attach_function :gpgme_op_setexpire_start, [Structs::Context, Structs::Key, :ulong, :string, :uint], :gpgme_error_t
       attach_function :gpgme_op_setownertrust, [Structs::Context, Structs::Key, :string], :gpgme_error_t
       attach_function :gpgme_op_setownertrust_start, [Structs::Context, Structs::Key, :string], :gpgme_error_t
-      attach_function :gpgme_op_sign, [Structs::Context, :pointer, :pointer, :uint], :uint
-      attach_function :gpgme_op_sign_result, [Structs::Context], :uint
-      attach_function :gpgme_op_sign_start, [Structs::Context, :pointer, :pointer, :uint], :uint
       attach_function :gpgme_op_tofu_policy, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_op_tofu_policy_start, [Structs::Context, Structs::Key, :uint], :uint
       attach_function :gpgme_pubkey_algo_name, [:uint], :string
@@ -146,6 +143,15 @@ module Crypt
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
       attach_function :gpgme_strsource, [:uint], :string
       attach_function :gpgme_wait, [Structs::Context, :pointer, :int], Structs::Context
+
+      # Signining and signers
+      attach_function :gpgme_op_sign, [Structs::Context, :pointer, :pointer, :uint], :uint
+      attach_function :gpgme_op_sign_result, [Structs::Context], :uint
+      attach_function :gpgme_op_sign_start, [Structs::Context, :pointer, :pointer, :uint], :uint
+      attach_function :gpgme_signers_clear, [Structs::Context], :void
+      attach_function :gpgme_signers_add, [Structs::Context, Structs::Key], :gpgme_error_t
+      attach_function :gpgme_signers_count, [Structs::Context], :uint
+      attach_function :gpgme_signers_enum, [Structs::Context], :pointer
     end
   end
 end
