@@ -210,7 +210,17 @@ module Crypt
       end
 
       def list_keys(pattern: nil, secret: 0, format: 'hash')
-        err = gpgme_op_keylist_start(@ctx.pointer, pattern, secret)
+        if pattern.is_a?(Array)
+          pattern_ptrs = FFI::MemoryPointer.new(:pointer, pattern.length)
+
+          pattern.each_with_index do |str, i|
+            pattern_ptrs[i].put_pointer(0, FFI::MemoryPointer.from_string(str))
+          end
+
+          err = gpgme_op_keylist_ext_start(@ctx.pointer, pattern_ptrs, secret, 0)
+        else
+          err = gpgme_op_keylist_start(@ctx.pointer, pattern, secret)
+        end
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
@@ -248,7 +258,9 @@ end
 if $0 == __FILE__
   require 'pp'
   ctx = Crypt::GPGME::Context.new
+  pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], format: 'object')
   #pp ctx.list_keys(pattern: 'djberg96', format: 'hash')
-  pp ctx.keylist_mode(format: :numeric)
-  pp ctx.keylist_mode(format: :string)
+  #pp ctx.list_keys(pattern: ['djberg96', format: 'hash')
+  #pp ctx.keylist_mode(format: :numeric)
+  #pp ctx.keylist_mode(format: :string)
 end
