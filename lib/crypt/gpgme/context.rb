@@ -10,6 +10,8 @@ module Crypt
 
       def initialize
         @ctx = Structs::Context.new
+        @released = false
+
         gpgme_check_version(nil)
         err = gpgme_new(@ctx)
 
@@ -195,7 +197,16 @@ module Crypt
       end
 
       def release
-        gpgme_release(@ctx.pointer) if !@ctx.pointer.null?
+        return if @released
+
+        if !@ctx.pointer.null?
+          gpgme_release(@ctx.pointer)
+          @released = true
+        end
+      end
+
+      def released?
+        @released
       end
 
       def list_keys(pattern: nil, secret: 0, format: 'hash')
