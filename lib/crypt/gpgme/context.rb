@@ -181,7 +181,7 @@ module Crypt
         gpgme_release(@ctx.pointer) if !@ctx.pointer.null?
       end
 
-      def list_keys(pattern = nil, secret = 0)
+      def list_keys(pattern: nil, secret: 0, format: 'hash')
         err = gpgme_op_keylist_start(@ctx.pointer, pattern, secret)
 
         if err != GPG_ERR_NO_ERROR
@@ -196,7 +196,11 @@ module Crypt
           err = gpgme_op_keylist_next(@ctx.pointer, key_ptr)
           break if err != GPG_ERR_NO_ERROR
           key = Structs::Key.new(key_ptr.read_pointer)
-          arr << key.to_hash
+          if format.to_s == 'hash'
+            arr << key.to_hash
+          else
+            arr << key
+          end
           gpgme_key_unref(key)
         end
 
@@ -214,6 +218,7 @@ module Crypt
 end
 
 if $0 == __FILE__
+  require 'pp'
   ctx = Crypt::GPGME::Context.new
-  p ctx.list_keys
+  pp ctx.list_keys(pattern: 'djberg96', format: 'hash')
 end
