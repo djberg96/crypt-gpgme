@@ -220,7 +220,7 @@ module Crypt
         @released
       end
 
-      def list_keys(pattern: nil, secret: 0, format: 'hash')
+      def list_keys(pattern: nil, secret: 0, type: 'hash')
         if pattern.is_a?(Array)
           pattern_ptrs = FFI::MemoryPointer.new(:pointer, pattern.length)
 
@@ -245,7 +245,7 @@ module Crypt
           err = gpgme_op_keylist_next(@ctx.pointer, key_ptr)
           break if err != GPG_ERR_NO_ERROR
           key = Structs::Key.new(key_ptr.read_pointer)
-          if format.to_s == 'hash'
+          if type.to_s == 'hash'
             arr << key.to_hash
           else
             arr << key
@@ -269,10 +269,11 @@ end
 if $0 == __FILE__
   require 'pp'
   ctx = Crypt::GPGME::Context.new
-  #pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], format: 'object')
-  #pp ctx.list_keys(pattern: 'djberg96', format: 'hash')
-  #pp ctx.list_keys(pattern: ['djberg96', format: 'hash')
+  pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], type: 'object')
+  pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], type: 'hash')
+  #pp ctx.list_keys(pattern: 'djberg96', type: 'hash')
+  #pp ctx.list_keys(pattern: ['djberg96', type: 'hash')
   #pp ctx.keylist_mode(format: :numeric)
   #pp ctx.keylist_mode(format: :string)
-  pp ctx.pinentry_mode(type: 'string')
+  #pp ctx.pinentry_mode(type: 'string')
 end
