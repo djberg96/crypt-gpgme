@@ -94,10 +94,10 @@ module Crypt
         gpgme_set_include_certs(@ctx.pointer, num)
       end
 
-      def keylist_mode(format: 'numeric')
+      def keylist_mode(type: 'numeric')
         mode = gpgme_get_keylist_mode(@ctx.pointer)
 
-        return mode if format.to_s == 'numeric'
+        return mode if type.to_s == 'numeric'
 
         flags = []
         flags << 'LOCAL' if (mode & GPGME_KEYLIST_MODE_LOCAL) != 0
@@ -169,8 +169,19 @@ module Crypt
         gpgme_set_offline(@ctx.pointer, bool)
       end
 
-      def pinentry_mode
-        gpgme_get_pinentry_mode(@ctx.pointer)
+      def pinentry_mode(type: 'numeric')
+        mode = gpgme_get_pinentry_mode(@ctx.pointer)
+
+        return mode if type.to_s == 'numeric'
+
+        flags = []
+        flags << 'GPGME_PINENTRY_MODE_DEFAULT' if (mode & GPGME_PINENTRY_MODE_DEFAULT) != 0
+        flags << 'GPGME_PINENTRY_MODE_ASK' if (mode & GPGME_PINENTRY_MODE_ASK) != 0
+        flags << 'GPGME_PINENTRY_MODE_CANCEL' if (mode & GPGME_PINENTRY_MODE_CANCEL) != 0
+        flags << 'GPGME_PINENTRY_MODE_ERROR' if (mode & GPGME_PINENTRY_MODE_ERROR) != 0
+        flags << 'GPGME_PINENTRY_MODE_LOOPBACK' if (mode & GPGME_PINENTRY_MODE_LOOPBACK) != 0
+
+        flags.empty? ? 'NONE' : flags.join(' | ')
       end
 
       def pinentry_mode=(mode)
@@ -258,9 +269,10 @@ end
 if $0 == __FILE__
   require 'pp'
   ctx = Crypt::GPGME::Context.new
-  pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], format: 'object')
+  #pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], format: 'object')
   #pp ctx.list_keys(pattern: 'djberg96', format: 'hash')
   #pp ctx.list_keys(pattern: ['djberg96', format: 'hash')
   #pp ctx.keylist_mode(format: :numeric)
   #pp ctx.keylist_mode(format: :string)
+  pp ctx.pinentry_mode(type: 'string')
 end
