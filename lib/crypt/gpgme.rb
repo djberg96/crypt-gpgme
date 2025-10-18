@@ -4,6 +4,7 @@ require_relative 'gpgme/context'
 require_relative 'gpgme/engine'
 require_relative 'gpgme/algorithm'
 require_relative 'gpgme/data'
+require_relative 'gpgme/key'
 
 module Crypt
   class GPGME
@@ -72,23 +73,27 @@ ctx = Crypt::GPGME::Context.new
 fpr = "C9D8 3C01 0035 9499 0E2F  E6C6 3D41 5506 6C03 D7EB"
 ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS
 
+#key = Crypt::GPGME::Key.new
+
 #sig = ctx.sign("hello world")
 #pp sig.to_hash
 
-#key = ctx.get_key(fpr)
+key = ctx.get_key(fpr)
+pp key.keylist_mode
 #pp key.to_hash
 #hash = key.to_hash
 #uid = hash[:uids].first
 
 #data = Crypt::GPGME::Data.new("hello world")
-filename = 'test.txt'
-file = File.open(filename)
+#filename = 'test.txt'
+#file = File.open(filename)
 
-data = Crypt::GPGME::Data.new(file.fileno)
+#data = Crypt::GPGME::Data.new(file.fileno)
 #data = Crypt::GPGME::Data.new(file)
 #pp data
-p data.to_s
-file.close
+#p data.to_s
+#file.close
+
 
 #pp uid[:signatures].map{ |h| h[:keyid] }
 #p ctx.protocol
