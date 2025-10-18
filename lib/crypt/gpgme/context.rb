@@ -1,6 +1,7 @@
 require_relative 'constants'
 require_relative 'functions'
 require_relative 'structs'
+require_relative 'key'
 
 module Crypt
   class GPGME
@@ -79,7 +80,7 @@ module Crypt
           raise Crypt::GPGME::Error, "gpgme_get_key failed: #{errstr}"
         end
 
-        key
+        Crypt::GPGME::Key.new(key)
       end
 
       def set_engine_info(proto, file_name, home_dir)
@@ -220,7 +221,7 @@ module Crypt
         @released
       end
 
-      def list_keys(pattern: nil, secret: 0, type: 'hash')
+      def list_keys(pattern: nil, secret: 0)
         if pattern.is_a?(Array)
           pattern_ptrs = FFI::MemoryPointer.new(:pointer, pattern.length)
 
@@ -245,11 +246,7 @@ module Crypt
           err = gpgme_op_keylist_next(@ctx.pointer, key_ptr)
           break if err != GPG_ERR_NO_ERROR
           key = Structs::Key.new(key_ptr.read_pointer)
-          if type.to_s == 'hash'
-            arr << key.to_hash
-          else
-            arr << key
-          end
+          arr << Crypt::GPGME::Key.new(key)
           gpgme_key_unref(key)
         end
 
@@ -269,8 +266,8 @@ end
 if $0 == __FILE__
   require 'pp'
   ctx = Crypt::GPGME::Context.new
-  pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], type: 'object')
-  pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], type: 'hash')
+  #pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], type: 'object')
+  key = pp ctx.list_keys(pattern: ['djberg96']).first
   #pp ctx.list_keys(pattern: 'djberg96', type: 'hash')
   #pp ctx.list_keys(pattern: ['djberg96', type: 'hash')
   #pp ctx.keylist_mode(format: :numeric)
