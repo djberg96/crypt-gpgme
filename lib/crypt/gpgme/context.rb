@@ -273,5 +273,15 @@ if $0 == __FILE__
   #pp ctx.keylist_mode(format: :string)
   #pp ctx.pinentry_mode(type: 'string')
   #pp key.to_hash
-  pp key.subkeys
+  #pp key.subkeys
+  #pp key.uids
+  key.uids.each do |uid|
+    p uid.name
+    p uid.email
+    p uid.comment
+  end
+
+  p key.last_update
+
+  pp key.revocation_keys
 end

@@ -6,6 +6,9 @@ require_relative 'gpgme/algorithm'
 require_relative 'gpgme/data'
 require_relative 'gpgme/key'
 require_relative 'gpgme/subkey'
+require_relative 'gpgme/user_id'
+require_relative 'gpgme/key_signature'
+require_relative 'gpgme/revocation_key'
 
 module Crypt
   class GPGME
