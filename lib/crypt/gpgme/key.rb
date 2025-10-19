@@ -1,4 +1,5 @@
 require 'forwardable'
+require_relative 'subkey'
 
 module Crypt
   class GPGME
@@ -24,6 +25,10 @@ module Crypt
 
       def object
         @key
+      end
+
+      def to_hash
+        @key.to_hash
       end
 
       def chain_id
@@ -61,7 +66,17 @@ module Crypt
       end
 
       def subkeys
-        @key[:subkeys]
+        subkey_array = []
+        subkey = @key[:subkeys]
+        subkey_array << subkey
+
+        loop do
+          subkey = Crypt::GPGME::Structs::Subkey.new(subkey[:next])
+          break if subkey.null?
+          subkey_array << Crypt::GPGME::Subkey.new(subkey)
+        end
+
+        subkey_array
       end
 
       def uids
