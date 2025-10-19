@@ -69,7 +69,7 @@ module Crypt
       def subkeys
         subkey_array = []
         subkey = @key[:subkeys]
-        subkey_array << subkey
+        subkey_array << Crypt::GPGME::Subkey.new(subkey)
 
         loop do
           subkey = Crypt::GPGME::Structs::Subkey.new(subkey[:next])
@@ -83,7 +83,7 @@ module Crypt
       def uids
         uid_array = []
         uid = @key[:uids]
-        uid_array << uid
+        uid_array << Crypt::GPGME::UserId.new(uid)
 
         loop do
           uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
