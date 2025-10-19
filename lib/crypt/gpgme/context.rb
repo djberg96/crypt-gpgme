@@ -37,7 +37,7 @@ module Crypt
       end
 
       def set_flag(name, value)
-        err = gpme_set_ctx_flag(@ctx.pointer, name, value)
+        err = gpgme_set_ctx_flag(@ctx.pointer, name, value)
 
         if err != GPG_ERR_NO_ERROR
           errstr = gpgme_strerror(err)
