@@ -260,7 +260,7 @@ module Crypt
           :keylist_mode, :uint,
           :fpr, :string,
           :last_update, :ulong,
-          :revocation_keys, :pointer,
+          :revocation_keys, RevocationKey.by_ref,
           :_last_revkey, :pointer
         )
 

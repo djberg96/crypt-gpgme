@@ -280,4 +280,8 @@ if $0 == __FILE__
     p uid.email
     p uid.comment
   end
+
+  p key.last_update
+
+  pp key.revocation_keys
 end
