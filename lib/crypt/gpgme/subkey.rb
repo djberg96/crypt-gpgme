@@ -35,7 +35,7 @@ module Crypt
         @subkey[:pubkey_algo]
       end
 
-      alias pubkey_algo pubkey_algorithm
+      alias pubkey_algorithm pubkey_algo
 
       def length
         @subkey[:length]
@@ -45,7 +45,7 @@ module Crypt
         @subkey[:fpr]
       end
 
-      alias fpr fingerprint
+      alias fingerprint fpr
 
       def timestamp
         @subkey[:timestamp]
