@@ -1,5 +1,6 @@
 require 'forwardable'
 require_relative 'subkey'
+require_relative 'user_id'
 
 module Crypt
   class GPGME
@@ -80,7 +81,17 @@ module Crypt
       end
 
       def uids
-        @key[:uids]
+        uid_array = []
+        uid = @key[:uids]
+        uid_array << uid
+
+        loop do
+          uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
+          break if uid.null?
+          uid_array << Crypt::GPGME::UserId.new(uid)
+        end
+
+        uid_array
       end
 
       def revocation_keys

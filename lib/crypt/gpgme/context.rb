@@ -274,4 +274,5 @@ if $0 == __FILE__
   #pp ctx.pinentry_mode(type: 'string')
   #pp key.to_hash
   pp key.subkeys
+  pp key.uids
 end
