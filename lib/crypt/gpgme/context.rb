@@ -247,7 +247,6 @@ module Crypt
           break if err != GPG_ERR_NO_ERROR
           key = Structs::Key.new(key_ptr.read_pointer)
           arr << Crypt::GPGME::Key.new(key)
-          gpgme_key_unref(key)
         end
 
         err = gpgme_op_keylist_end(@ctx.pointer)
@@ -273,4 +272,6 @@ if $0 == __FILE__
   #pp ctx.keylist_mode(format: :numeric)
   #pp ctx.keylist_mode(format: :string)
   #pp ctx.pinentry_mode(type: 'string')
+  #pp key.to_hash
+  pp key.subkeys
 end
