@@ -5,6 +5,7 @@ require_relative 'gpgme/engine'
 require_relative 'gpgme/algorithm'
 require_relative 'gpgme/data'
 require_relative 'gpgme/key'
+require_relative 'gpgme/subkey'
 
 module Crypt
   class GPGME
@@ -78,8 +79,22 @@ ctx.keylist_mode = Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_
 #sig = ctx.sign("hello world")
 #pp sig.to_hash
 
+=begin
 key = ctx.get_key(fpr)
-pp key.keylist_mode
+p key.keylist_mode
+p key.last_update
+p key.fingerprint
+p key.issuer_serial
+p key.issuer_name
+p key.chain_id
+p key.subkeys
+p key.uids
+p key.revocation_keys
+p key.revoked?
+p key.expired?
+p key.disabled?
+p key.can_encrypt?
+=end
 #pp key.to_hash
 #hash = key.to_hash
 #uid = hash[:uids].first
