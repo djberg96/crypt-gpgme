@@ -2,6 +2,7 @@ require_relative 'constants'
 require_relative 'functions'
 require_relative 'structs'
 require_relative 'key'
+require_relative 'engine'
 
 module Crypt
   class GPGME
@@ -52,18 +53,12 @@ module Crypt
         info = Crypt::GPGME::Structs::EngineInfo.new(ptr)
 
         arr = []
-        return arr if info.null?
+        arr << Crypt::GPGME::Engine.new(info)
 
-        while !info[:next].null?
-          arr << {
-            :protocol    => gpgme_get_protocol_name(info[:protocol]),
-            :file_name   => info[:file_name],
-            :home_dir    => info[:home_dir],
-            :version     => info[:version],
-            :req_version => info[:req_version]
-          } if info[:version]
-
-          info = Structs::EngineInfo.new(info[:next])
+        loop do
+          info = Crypt::GPGME::Structs::EngineInfo.new(info[:next])
+          break if info.null?
+          arr << Crypt::GPGME::Engine.new(info)
         end
 
         arr
@@ -266,7 +261,7 @@ if $0 == __FILE__
   require 'pp'
   ctx = Crypt::GPGME::Context.new
   #pp ctx.list_keys(pattern: ['bdunne', 'djberg96'], type: 'object')
-  key = pp ctx.list_keys(pattern: ['djberg96']).first
+  #key = pp ctx.list_keys(pattern: ['djberg96']).first
   #pp ctx.list_keys(pattern: 'djberg96', type: 'hash')
   #pp ctx.list_keys(pattern: ['djberg96', type: 'hash')
   #pp ctx.keylist_mode(format: :numeric)
@@ -275,13 +270,21 @@ if $0 == __FILE__
   #pp key.to_hash
   #pp key.subkeys
   #pp key.uids
-  key.uids.each do |uid|
-    p uid.name
-    p uid.email
-    p uid.comment
+  #key.uids.each do |uid|
+  #  p uid.name
+  #  p uid.email
+  #  p uid.comment
+  #end
+
+  #p key.last_update
+
+  #pp key.revocation_keys
+
+  ctx.get_engine_info.each do |engine|
+    p engine.protocol(type: 'string')
+    p engine.version
+    p engine.req_version
+    p engine.file_name
+    p engine.home_dir
   end
-
-  p key.last_update
-
-  pp key.revocation_keys
 end

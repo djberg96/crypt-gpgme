@@ -6,9 +6,53 @@ module Crypt
   class GPGME
     class Engine
       include Crypt::GPGME::Constants
+      include Crypt::GPGME::Functions
       extend Crypt::GPGME::Constants
       extend Crypt::GPGME::Functions
       extend Crypt::GPGME::Structs
+
+      def initialize(obj)
+        return if obj.nil?
+        return obj if obj.is_a?(Engine)
+
+        if obj.is_a?(Crypt::GPGME::Structs::EngineInfo)
+          @engine = obj
+        else
+          @engine = Crypt::GPGME::Structs::EngineInfo.new
+        end
+      end
+
+      def object
+        @engine
+      end
+
+      def to_hash
+        @engine.to_hash
+      end
+
+      def protocol(type: 'numeric')
+        if type.to_s == 'string'
+          gpgme_get_protocol_name(@engine[:protocol])
+        else
+          @engine[:protocol]
+        end
+      end
+
+      def file_name
+        @engine[:file_name]
+      end
+
+      def version
+        @engine[:version]
+      end
+
+      def req_version
+        @engine[:req_version]
+      end
+
+      def home_dir
+        @engine[:home_dir]
+      end
 
       class << self
         # Verifies that the engine implementing the +protocol+ is installed
