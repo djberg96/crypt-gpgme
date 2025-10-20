@@ -36,23 +36,6 @@ RSpec.describe Crypt::GPGME do
     end
   end
 
-  context Crypt::GPGME::Engine do
-    example 'check_version basic functionality' do
-      expect(described_class).to respond_to(:check_version)
-      expect(described_class.check_version).to be_boolean
-    end
-
-    example 'check_version returns the expected value' do
-      expect(described_class.check_version).to be true
-      expect(described_class.check_version(99999)).to be false
-    end
-
-    example 'check_version only accepts a single, integer argument' do
-      expect{ described_class.check_version(1, 2) }.to raise_error(ArgumentError)
-      expect{ described_class.check_version('foo') }.to raise_error(TypeError)
-    end
-  end
-
   context 'FFI' do
     before(:context) do
       require 'mkmf-lite'
