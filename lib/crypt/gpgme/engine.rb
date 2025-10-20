@@ -30,8 +30,8 @@ module Crypt
         @engine.to_hash
       end
 
-      def protocol(type: 'numeric')
-        if type.to_s == 'string'
+      def protocol(as: 'integer')
+        if as.to_s == 'string'
           gpgme_get_protocol_name(@engine[:protocol])
         else
           @engine[:protocol]
