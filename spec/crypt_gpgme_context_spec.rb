@@ -54,7 +54,12 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     example 'get_engine_info returns expected value' do
-      expect(subject.get_engine_info.first).to be_a(Crypt::GPGME::Engine)
+      engine = subject.get_engine_info.first
+      expect(engine).to be_a(Crypt::GPGME::Engine)
+      expect(engine.file_name).to be_a(String)
+      expect(engine.version).to be_a(String)
+      expect(engine.req_version).to be_a(String)
+      expect(engine.home_dir).to be_a(String).or be_nil
     end
   end
 end
