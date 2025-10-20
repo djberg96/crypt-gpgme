@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files = Dir['doc/*.rdoc']
 
   spec.add_dependency('ffi', '~> 1.1')
-  spec.add_dependency('ffi-bitfield', '~> 0.0.10')
+  spec.add_dependency('ffi-bitfield', '~> 0.0.11')
 
   spec.add_development_dependency('rspec')
   spec.add_development_dependency('rspec_boolean')
@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('rake')
   spec.add_development_dependency('rubocop')
   spec.add_development_dependency('rubocop-rspec')
+  spec.add_development_dependency('fakefs')
 
   spec.metadata = {
     'homepage_uri'          => 'https://github.com/djberg96/crypt-gpgme',

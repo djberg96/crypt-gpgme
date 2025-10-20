@@ -1,6 +1,4 @@
-require 'rspec'
-require 'rspec_boolean'
-require 'crypt/gpgme'
+require 'spec_helper'
 
 RSpec.describe Crypt::GPGME::Context do
   subject{ described_class.new }

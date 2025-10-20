@@ -3,9 +3,7 @@
 #
 # Specs for the crypt-gpgme library.
 #######################################################################
-require 'rspec'
-require 'rspec_boolean'
-require 'crypt/gpgme'
+require 'spec_helper'
 
 RSpec.describe Crypt::GPGME do
   example 'version is set to expected value' do

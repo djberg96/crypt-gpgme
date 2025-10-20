@@ -1,6 +1,4 @@
-require 'rspec'
-require 'rspec_boolean'
-require 'crypt/gpgme'
+require 'spec_helper'
 
 RSpec.describe Crypt::GPGME::Algorithm do
   example 'pubkey_algorithm_name basic functionality' do
