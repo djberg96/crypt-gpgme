@@ -9,37 +9,52 @@ RSpec.describe Crypt::GPGME::Context do
     subject.release
   end
 
-  example 'armor? basic functionality' do
-    expect(subject).to respond_to(:armor?)
-    expect(subject.armor?).to be_boolean
+  context 'armor' do
+    example 'armor? basic functionality' do
+      expect(subject).to respond_to(:armor?)
+      expect(subject.armor?).to be_boolean
+    end
+
+    example 'armor= basic functionality' do
+      expect(subject).to respond_to(:armor=)
+      expect(subject.armor=true).to be_boolean
+    end
+
+    example 'armor? returns expected value' do
+      expect(subject.armor?).to be(false)
+      subject.armor=true
+      expect(subject.armor?).to be(true)
+    end
   end
 
-  example 'armor= basic functionality' do
-    expect(subject).to respond_to(:armor=)
-    expect(subject.armor=true).to be_boolean
+  context 'flags' do
+    example 'get_flag basic functionality' do
+      expect(subject).to respond_to(:get_flag)
+      expect(subject.get_flag('redraw')).to be_a(String)
+    end
+
+    example 'get_flag returns expected value' do
+      expect(subject.get_flag('redraw')).to eq('')
+    end
+
+    example 'set_flag basic functionality' do
+      expect(subject).to respond_to(:set_flag)
+      expect(subject.set_flag('redraw', '')).to be_a(Hash)
+    end
+
+    example 'set_flag returns expected value' do
+      expect(subject.set_flag('redraw', '')).to eq({'redraw' => ''})
+    end
   end
 
-  example 'armor? returns expected value' do
-    expect(subject.armor?).to be(false)
-    subject.armor=true
-    expect(subject.armor?).to be(true)
-  end
+  context 'engine info' do
+    example 'get_engine_info basic functionality' do
+      expect(subject).to respond_to(:get_engine_info)
+      expect(subject.get_engine_info).to be_a(Array)
+    end
 
-  example 'get_flag basic functionality' do
-    expect(subject).to respond_to(:get_flag)
-    expect(subject.get_flag('redraw')).to be_a(String)
-  end
-
-  example 'get_flag returns expected value' do
-    expect(subject.get_flag('redraw')).to eq('')
-  end
-
-  example 'set_flag basic functionality' do
-    expect(subject).to respond_to(:set_flag)
-    expect(subject.set_flag('redraw', '')).to be_a(Hash)
-  end
-
-  example 'set_flag returns expected value' do
-    expect(subject.set_flag('redraw', '')).to eq({'redraw' => ''})
+    example 'get_engine_info returns expected value' do
+      expect(subject.get_engine_info.first).to be_a(Crypt::GPGME::Engine)
+    end
   end
 end
