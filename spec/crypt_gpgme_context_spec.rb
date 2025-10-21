@@ -84,5 +84,10 @@ RSpec.describe Crypt::GPGME::Context do
       expect(subject.create_key(userid, flags: flags)).to be_a(Crypt::GPGME::Structs::GenkeyResult)
       expect(subject.list_keys.size).to eq(size + 1)
     end
+
+    example 'create_key return value has expected result' do
+      result = subject.create_key('bogus2@bogus.com', flags: flags)
+      expect(result[:fpr]).to be_a(String)
+    end
   end
 end
