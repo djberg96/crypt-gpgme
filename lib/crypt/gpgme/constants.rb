@@ -749,6 +749,11 @@ module Crypt
       GPGME_SIG_MODE_CLEAR   = 2
       GPGME_SIG_MODE_ARCHIVE = 4
       GPGME_SIG_MODE_FILE    = 8
+
+      # These value are not really meant to be exposed and could change in
+      # future versions, but I'm not sure what other option we have.
+      GPGME_DELETE_ALLOW_SECRET = 1
+      GPGME_DELETE_FORCE = 2
     end
   end
 end

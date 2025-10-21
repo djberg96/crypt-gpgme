@@ -90,4 +90,30 @@ RSpec.describe Crypt::GPGME::Context do
       expect(result[:fpr]).to be_a(String)
     end
   end
+
+  context 'delete key', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+    end
+
+    after do
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'delete_key basic functionality' do
+      expect(subject).to respond_to(:delete_key)
+    end
+
+    example 'delete_key works as expected with a string argument' do
+      subject.create_key(userid, flags: create_flags)
+      size = subject.list_keys.size
+      expect(subject.delete_key(userid, force: true)).to be(true)
+      expect(subject.list_keys.size).to eq(size - 1)
+    end
+  end
 end
