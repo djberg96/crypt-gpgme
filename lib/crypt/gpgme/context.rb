@@ -64,6 +64,23 @@ module Crypt
         arr
       end
 
+      def create_key(userid, algorithm: 'default', expires: 0, flags: 0)
+        err = gpgme_op_createkey(@ctx.pointer, userid, algorithm, 0, expires, nil, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_createkey failed: #{errstr}"
+        end
+
+        ptr = gpgme_op_genkey_result(@ctx.pointer)
+
+        if ptr.null?
+          false
+        else
+          Crypt::GPGME::Structs::GenkeyResult.new(ptr)
+        end
+      end
+
       def get_key(fingerprint, secret = true)
         key = FFI::MemoryPointer.new(:pointer)
         err = gpgme_get_key(@ctx.pointer, fingerprint, key, secret)
