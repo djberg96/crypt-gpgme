@@ -112,7 +112,17 @@ RSpec.describe Crypt::GPGME::Context do
     example 'delete_key works as expected with a string argument' do
       subject.create_key(userid, flags: create_flags)
       size = subject.list_keys.size
+
       expect(subject.delete_key(userid, force: true)).to be(true)
+      expect(subject.list_keys.size).to eq(size - 1)
+    end
+
+    example 'delete_key works as expected with a key argument' do
+      subject.create_key(userid, flags: create_flags)
+      key_object = subject.list_keys(pattern: userid).first
+      size = subject.list_keys.size
+
+      expect(subject.delete_key(key_object, force: true)).to be(true)
       expect(subject.list_keys.size).to eq(size - 1)
     end
   end
