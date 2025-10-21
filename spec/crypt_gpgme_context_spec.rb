@@ -62,20 +62,16 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
-  context 'create key' do
+  context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
     let(:flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
 
-    before do
-      @tmpdir = Dir.mktmpdir
-      @original_dir = Dir.pwd
-      Dir.chdir(@tmpdir)
-      subject.set_engine_info(engine.protocol, engine.file_name, @tmpdir)
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
     end
 
     after do
-      Dir.chdir(@original_dir)
       subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
     end
 
