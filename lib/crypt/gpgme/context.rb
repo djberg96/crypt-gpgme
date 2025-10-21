@@ -186,8 +186,14 @@ module Crypt
         value
       end
 
-      def protocol
-        gpgme_get_protocol(@ctx.pointer)
+      def protocol(as: 'integer')
+        proto = gpgme_get_protocol(@ctx.pointer)
+
+        if as.to_s == 'string'
+          proto = gpgme_get_protocol_name(proto)
+        end
+
+        proto
       end
 
       def protocol=(proto)
@@ -197,6 +203,8 @@ module Crypt
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_set_protocol failed: #{errstr}"
         end
+
+        proto
       end
 
       def offline?

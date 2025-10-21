@@ -62,6 +62,30 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'protocol' do
+    example 'protocol basic functionality' do
+      expect(subject).to respond_to(:protocol)
+      expect(subject.protocol).to be_a(Integer)
+    end
+
+    example 'protocol optionally returns a string' do
+      expect(subject.protocol(as: 'string')).to be_a(String)
+    end
+
+    example 'protocol returns expected value' do
+      expect(subject.protocol).to eq(0)
+      expect(subject.protocol(as: 'string')).to eq('OpenPGP')
+    end
+
+    example 'protocol= basic functionality' do
+      expect(subject).to respond_to(:protocol=)
+    end
+
+    example 'protocol= works as expected' do
+      expect(subject.protocol = 0).to eq(0)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
