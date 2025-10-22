@@ -132,10 +132,10 @@ module Crypt
         gpgme_set_include_certs(@ctx.pointer, num)
       end
 
-      def keylist_mode(type: 'numeric')
+      def keylist_mode(as: 'integer')
         mode = gpgme_get_keylist_mode(@ctx.pointer)
 
-        return mode if type.to_s == 'numeric'
+        return mode if as.to_s == 'integer'
 
         flags = []
         flags << 'LOCAL' if (mode & GPGME_KEYLIST_MODE_LOCAL) != 0

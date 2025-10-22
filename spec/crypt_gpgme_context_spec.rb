@@ -106,6 +106,22 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'keylist mode' do
+    example 'keylist_mode basic functionality' do
+      expect(subject).to respond_to(:keylist_mode)
+      expect(subject.keylist_mode).to be_a(Integer)
+    end
+
+    example 'keylist_mode returns the expected result' do
+      expect(subject.keylist_mode).to eq(Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL)
+    end
+
+    example 'keylist_mode accepts an optional argument to return a string or integer' do
+      expect(subject.keylist_mode(as: 'string')).to eq('LOCAL')
+      expect(subject.keylist_mode(as: 'integer')).to eq(Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
