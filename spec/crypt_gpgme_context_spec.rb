@@ -120,6 +120,15 @@ RSpec.describe Crypt::GPGME::Context do
       expect(subject.keylist_mode(as: 'string')).to eq('LOCAL')
       expect(subject.keylist_mode(as: 'integer')).to eq(Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL)
     end
+
+    example 'keylist_mode= basic functionality' do
+      expect(subject).to respond_to(:keylist_mode=)
+    end
+
+    example 'keylist_mode= works as expected' do
+      current_mode = subject.keylist_mode
+      expect(subject.keylist_mode = current_mode).to eq(current_mode)
+    end
   end
 
   context 'create key', :tempfs do
