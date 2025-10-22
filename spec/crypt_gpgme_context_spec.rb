@@ -86,6 +86,17 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'include certs' do
+    example 'include_certs basic functionality' do
+      expect(subject).to respond_to(:include_certs)
+      expect(subject.include_certs).to be_a(Integer)
+    end
+
+    example 'include_certs returns an expected value' do
+      expect(subject.include_certs).to eq(1)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
@@ -115,7 +126,7 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
-  context 'get_key', :tempfs do
+  context 'get key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
     let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
@@ -148,7 +159,7 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
-  context 'delete_key', :tempfs do
+  context 'delete key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
     let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
