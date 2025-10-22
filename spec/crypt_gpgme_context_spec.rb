@@ -105,17 +105,50 @@ RSpec.describe Crypt::GPGME::Context do
 
     example 'create_key works as expected' do
       size = subject.list_keys.size
-      expect(subject.create_key(userid, flags: flags)).to be_a(Crypt::GPGME::Structs::GenkeyResult)
+      expect(subject.create_key(userid, flags: flags)).to be_a(Crypt::GPGME::GenkeyResult)
       expect(subject.list_keys.size).to eq(size + 1)
     end
 
     example 'create_key return value has expected result' do
       result = subject.create_key('bogus2@bogus.com', flags: flags)
-      expect(result[:fpr]).to be_a(String)
+      expect(result.fingerprint).to be_a(String)
     end
   end
 
-  context 'delete key', :tempfs do
+  context 'get_key', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @key_result = subject.create_key(userid, flags: create_flags)
+    end
+
+    after do
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+      subject.delete_key(@key_result.fingerprint, force: true)
+    end
+
+    example 'get_key basic functionality' do
+      expect(subject).to respond_to(:get_key)
+    end
+
+    example 'get_key returns the expected value' do
+      key = subject.get_key(@key_result.fingerprint)
+      expect(key).to be_a(Crypt::GPGME::Key)
+      expect(key.fingerprint).to eq(@key_result.fingerprint)
+    end
+
+    example 'get_key accepts an optional argument to get the secret key' do
+      key = subject.get_key(@key_result.fingerprint, false)
+      expect(key).to be_a(Crypt::GPGME::Key)
+      expect(key.fingerprint).to eq(@key_result.fingerprint)
+    end
+  end
+
+  context 'delete_key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
     let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }

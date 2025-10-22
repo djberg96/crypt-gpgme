@@ -77,7 +77,7 @@ module Crypt
         if ptr.null?
           false
         else
-          Crypt::GPGME::Structs::GenkeyResult.new(ptr)
+          Crypt::GPGME::GenkeyResult.new(ptr)
         end
       end
 
