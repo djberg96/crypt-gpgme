@@ -93,6 +93,15 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     example 'include_certs returns an expected value' do
+      expect(subject.include_certs).to eq(Crypt::GPGME::GPGME_INCLUDE_CERTS_DEFAULT)
+    end
+
+    example 'include_certs= basic functionality' do
+      expect(subject).to respond_to(:include_certs=)
+    end
+
+    example 'include_certs= works as expected' do
+      expect(subject.include_certs = 1).to eq(1)
       expect(subject.include_certs).to eq(1)
     end
   end

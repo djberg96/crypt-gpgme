@@ -754,6 +754,7 @@ module Crypt
       # future versions, but I'm not sure what other option we have.
       GPGME_DELETE_ALLOW_SECRET = 1
       GPGME_DELETE_FORCE = 2
+      GPGME_INCLUDE_CERTS_DEFAULT = (-1 << 8)
     end
   end
 end
