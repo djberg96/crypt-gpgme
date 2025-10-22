@@ -183,8 +183,8 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     after do
-      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
       subject.delete_key(@key_result.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
     end
 
     example 'get_key basic functionality' do
