@@ -755,6 +755,11 @@ module Crypt
       GPGME_DELETE_ALLOW_SECRET = 1
       GPGME_DELETE_FORCE = 2
       GPGME_INCLUDE_CERTS_DEFAULT = (-1 << 8)
+
+      # Locale stuff
+      LC_ALL      = 0
+      LC_CTYPE    = 2
+      LC_MESSAGES = 3
     end
   end
 end

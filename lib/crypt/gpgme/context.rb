@@ -172,7 +172,18 @@ module Crypt
           raise Crypt::GPGME::Error, "gpgme_set_locale failed: #{errstr}"
         end
 
-        {category => value}
+        str = case category
+          when LC_CTYPE
+            'LC_CTYPE'
+          when LC_ALL
+            'LC_ALL'
+          when LC_MESSAGES
+            'LC_MESSAGES'
+          else
+            'UNKNOWN'
+        end
+
+        {str => value}
       end
 
       def set_tofu_policy(key, value)

@@ -131,6 +131,17 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'set locale' do
+    example 'set_locale basic functionality' do
+      expect(subject).to respond_to(:set_locale)
+    end
+
+    example 'set_locale works as expected' do
+      current_locale = ENV['LC_CTYPE'] || ENV['LANG']
+      expect(subject.set_locale(Crypt::GPGME::LC_CTYPE, current_locale)).to eq({'LC_CTYPE' => current_locale})
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
