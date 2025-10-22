@@ -17,6 +17,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::EngineInfo)
           @engine = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @engine = Crypt::GPGME::Structs::EngineInfo.new(obj)
         else
           @engine = Crypt::GPGME::Structs::EngineInfo.new
         end

@@ -64,6 +64,48 @@ module Crypt
         arr
       end
 
+      def create_key(userid, algorithm: 'default', expires: 0, flags: 0)
+        err = gpgme_op_createkey(@ctx.pointer, userid, algorithm, 0, expires, nil, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_createkey failed: #{errstr}"
+        end
+
+        ptr = gpgme_op_genkey_result(@ctx.pointer)
+
+        if ptr.null?
+          false
+        else
+          Crypt::GPGME::GenkeyResult.new(ptr)
+        end
+      end
+
+      def delete_key(key, flags: 0, force: false)
+        if key.is_a?(Crypt::GPGME::Key)
+          key = key.object
+        elsif key.is_a?(Crypt::GPGME::UserId)
+          key = list_keys(pattern: key.email).first.object
+        elsif key.is_a?(String)
+          key = list_keys(pattern: key).first.object
+        else
+          raise TypeError, "first argument must be a Key, UserId or string"
+        end
+
+        if force
+          flags = GPGME_DELETE_FORCE | GPGME_DELETE_ALLOW_SECRET
+        end
+
+        err = gpgme_op_delete_ext(@ctx.pointer, key, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_delete_ext failed: #{errstr}"
+        end
+
+        true
+      end
+
       def get_key(fingerprint, secret = true)
         key = FFI::MemoryPointer.new(:pointer)
         err = gpgme_get_key(@ctx.pointer, fingerprint, key, secret)
@@ -144,8 +186,14 @@ module Crypt
         value
       end
 
-      def protocol
-        gpgme_get_protocol(@ctx.pointer)
+      def protocol(as: 'integer')
+        proto = gpgme_get_protocol(@ctx.pointer)
+
+        if as.to_s == 'string'
+          proto = gpgme_get_protocol_name(proto)
+        end
+
+        proto
       end
 
       def protocol=(proto)
@@ -155,6 +203,8 @@ module Crypt
           errstr = gpgme_strerror(err)
           raise Crypt::GPGME::Error, "gpgme_set_protocol failed: #{errstr}"
         end
+
+        proto
       end
 
       def offline?

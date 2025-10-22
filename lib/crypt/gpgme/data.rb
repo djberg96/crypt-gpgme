@@ -14,6 +14,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::Data)
           @data = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @data = Crypt::GPGME::Structs::Data.new(obj)
         else
           @data = Crypt::GPGME::Structs::Data.new
         end

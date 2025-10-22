@@ -49,6 +49,12 @@ module Crypt
         end
       end
 
+      # gpgme_genkey_result_t
+      class GenkeyResult < FFI::BitStruct
+        layout(:_properties, :uint, :fpr, :string, :pubkey, :pointer, :seckey, :pointer)
+        bit_fields(:_properties, :primary, 1, :sub, 1, :uid, 1, :_unused, 29)
+      end
+
       # gpgme_op_keylist_result_t
       class KeylistResult < FFI::BitStruct
         layout(:_properties, :uint)
