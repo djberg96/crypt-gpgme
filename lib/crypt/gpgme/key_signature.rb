@@ -16,6 +16,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::KeySignature)
           @keysig = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @keysig = Crypt::GPGME::Structs::KeySignature.new(obj)
         else
           @keysig = Crypt::GPGME::Structs::KeySignature.new
         end

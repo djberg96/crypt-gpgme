@@ -20,6 +20,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::Key)
           @key = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @key = Crypt::GPGME::Structs::Key.new(obj)
         else
           @key = Crypt::GPGME::Structs::Key.new
         end

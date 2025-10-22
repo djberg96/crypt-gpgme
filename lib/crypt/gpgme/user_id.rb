@@ -16,6 +16,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::UserId)
           @userid = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @userid = Crypt::GPGME::Structs::UserId.new(obj)
         else
           @userid = Crypt::GPGME::Structs::UserId.new
         end

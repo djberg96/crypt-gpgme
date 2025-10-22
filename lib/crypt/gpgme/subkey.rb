@@ -18,6 +18,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::Subkey)
           @subkey = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @subkey = Crypt::GPGME::Structs::Subkey.new(obj)
         else
           @subkey = Crypt::GPGME::Structs::Subkey.new
         end

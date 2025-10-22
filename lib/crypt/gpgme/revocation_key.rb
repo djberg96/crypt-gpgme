@@ -15,6 +15,8 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::RevocationKey)
           @revkey = obj
+        elsif obj.is_a?(FFI::MemoryPointer)
+          @revkey = Crypt::GPGME::Structs::RevocationKey.new(obj)
         else
           @revkey = Crypt::GPGME::Structs::RevocationKey.new
         end
