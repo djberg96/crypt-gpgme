@@ -168,6 +168,23 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'offline' do
+    example 'offline? basic functionality' do
+      expect(subject).to respond_to(:offline?)
+      expect(subject.offline?).to be_boolean
+    end
+
+    example 'offline= basic functionality' do
+      expect(subject).to respond_to(:offline=)
+    end
+
+    example 'offline= works as expected' do
+      current = subject.offline?
+      expect(subject.offline = (!current)).to eq(!current)
+      expect(subject.offline = current).to eq(current)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
