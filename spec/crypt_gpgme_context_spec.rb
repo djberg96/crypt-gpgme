@@ -106,6 +106,147 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'keylist mode' do
+    example 'keylist_mode basic functionality' do
+      expect(subject).to respond_to(:keylist_mode)
+      expect(subject.keylist_mode).to be_a(Integer)
+    end
+
+    example 'keylist_mode returns the expected result' do
+      expect(subject.keylist_mode).to eq(Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL)
+    end
+
+    example 'keylist_mode accepts an optional argument to return a string or integer' do
+      expect(subject.keylist_mode(as: 'string')).to eq('LOCAL')
+      expect(subject.keylist_mode(as: 'integer')).to eq(Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL)
+    end
+
+    example 'keylist_mode= basic functionality' do
+      expect(subject).to respond_to(:keylist_mode=)
+    end
+
+    example 'keylist_mode= works as expected' do
+      current_mode = subject.keylist_mode
+      expect(subject.keylist_mode = current_mode).to eq(current_mode)
+    end
+  end
+
+  context 'set locale' do
+    example 'set_locale basic functionality' do
+      expect(subject).to respond_to(:set_locale)
+    end
+
+    example 'set_locale works as expected' do
+      current_locale = ENV['LC_CTYPE'] || ENV['LANG']
+      expect(subject.set_locale(Crypt::GPGME::LC_CTYPE, current_locale)).to eq({'LC_CTYPE' => current_locale})
+    end
+  end
+
+  context 'set tofu policy' do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:policy){ Crypt::GPGME::GPGME_TOFU_POLICY_AUTO }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @key_result = subject.create_key(userid, flags: flags)
+    end
+
+    after do
+      subject.delete_key(@key_result.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'set_tofu_policy basic functionality' do
+      expect(subject).to respond_to(:set_tofu_policy)
+    end
+
+    example 'set_tofu_policy works as expected' do
+      key = subject.get_key(@key_result.fingerprint)
+      expect(subject.set_tofu_policy(key, policy)).to be(policy)
+    end
+  end
+
+  context 'offline' do
+    example 'offline? basic functionality' do
+      expect(subject).to respond_to(:offline?)
+      expect(subject.offline?).to be_boolean
+    end
+
+    example 'offline= basic functionality' do
+      expect(subject).to respond_to(:offline=)
+    end
+
+    example 'offline= works as expected' do
+      current = subject.offline?
+      expect(subject.offline = (!current)).to eq(!current)
+      expect(subject.offline = current).to eq(current)
+    end
+  end
+
+  context 'pinentry mode' do
+    example 'pinentry_mode basic functionality' do
+      expect(subject).to respond_to(:pinentry_mode)
+      expect(subject.pinentry_mode).to be_a(Integer)
+    end
+
+    example 'pinentry_mode returns expected value' do
+      expect(subject.pinentry_mode).to eq(Crypt::GPGME::GPGME_PINENTRY_MODE_DEFAULT)
+    end
+
+    example 'pinentry_mode accepts an optional argument' do
+      expect(subject.pinentry_mode(as: 'integer')).to eq(Crypt::GPGME::GPGME_PINENTRY_MODE_DEFAULT)
+      expect(subject.pinentry_mode(as: 'string')).to eq('default')
+    end
+
+    example 'pinentry_mode= basic functionality' do
+      expect(subject).to respond_to(:pinentry_mode=)
+    end
+
+    example 'pinentry_mode= works as expected' do
+      current_mode = subject.pinentry_mode
+      expect(subject.pinentry_mode = current_mode).to eq(current_mode)
+    end
+  end
+
+  context 'text mode' do
+    example 'text_mode? basic functionality' do
+      expect(subject).to respond_to(:text_mode?)
+      expect(subject.text_mode?).to be_boolean
+    end
+
+    example 'text_mode= basic functionality' do
+      expect(subject).to respond_to(:text_mode=)
+    end
+
+    example 'text_mode= works as expected' do
+      current_mode = subject.text_mode?
+      expect(subject.text_mode = current_mode).to eq(current_mode)
+    end
+  end
+
+  context 'release' do
+    example 'release basic functionality' do
+      expect(subject).to respond_to(:release)
+      expect(subject.release).to be(true)
+    end
+
+    example 'calling release multiple times is safe' do
+      expect{ 10.times{ subject.release } }.not_to raise_error
+    end
+
+    example 'released? basic functionality' do
+      expect(subject).to respond_to(:released?)
+    end
+
+    example 'release? is set to the expected value' do
+      expect(subject.released?).to be(false)
+      subject.release
+      expect(subject.released?).to be(true)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
@@ -113,9 +254,14 @@ RSpec.describe Crypt::GPGME::Context do
 
     before do |example|
       subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @result = nil
     end
 
-    after do
+    after do |example|
+      if @result
+        key = subject.get_key(@result.fingerprint)
+        subject.delete_key(key, force: true)
+      end
       subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
     end
 
@@ -125,13 +271,14 @@ RSpec.describe Crypt::GPGME::Context do
 
     example 'create_key works as expected' do
       size = subject.list_keys.size
-      expect(subject.create_key(userid, flags: flags)).to be_a(Crypt::GPGME::GenkeyResult)
+      @result = subject.create_key(userid, flags: flags)
+      expect(@result).to be_a(Crypt::GPGME::GenkeyResult)
       expect(subject.list_keys.size).to eq(size + 1)
     end
 
     example 'create_key return value has expected result' do
-      result = subject.create_key('bogus2@bogus.com', flags: flags)
-      expect(result.fingerprint).to be_a(String)
+      @result = subject.create_key('bogus2@bogus.com', flags: flags)
+      expect(@result.fingerprint).to be_a(String)
     end
   end
 
@@ -147,8 +294,8 @@ RSpec.describe Crypt::GPGME::Context do
     end
 
     after do
-      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
       subject.delete_key(@key_result.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
     end
 
     example 'get_key basic functionality' do

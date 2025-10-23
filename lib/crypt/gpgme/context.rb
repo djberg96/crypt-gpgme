@@ -132,10 +132,10 @@ module Crypt
         gpgme_set_include_certs(@ctx.pointer, num)
       end
 
-      def keylist_mode(type: 'numeric')
+      def keylist_mode(as: 'integer')
         mode = gpgme_get_keylist_mode(@ctx.pointer)
 
-        return mode if type.to_s == 'numeric'
+        return mode if as.to_s == 'integer'
 
         flags = []
         flags << 'LOCAL' if (mode & GPGME_KEYLIST_MODE_LOCAL) != 0
@@ -172,10 +172,22 @@ module Crypt
           raise Crypt::GPGME::Error, "gpgme_set_locale failed: #{errstr}"
         end
 
-        {category => value}
+        str = case category
+          when LC_CTYPE
+            'LC_CTYPE'
+          when LC_ALL
+            'LC_ALL'
+          when LC_MESSAGES
+            'LC_MESSAGES'
+          else
+            'UNKNOWN'
+        end
+
+        {str => value}
       end
 
       def set_tofu_policy(key, value)
+        key = key.object if key.is_a?(Key)
         err = gpgme_op_tofu_policy(@ctx.pointer, key, value)
 
         if err != GPG_ERR_NO_ERROR
@@ -215,19 +227,27 @@ module Crypt
         gpgme_set_offline(@ctx.pointer, bool)
       end
 
-      def pinentry_mode(type: 'numeric')
+      def pinentry_mode(as: 'integer')
         mode = gpgme_get_pinentry_mode(@ctx.pointer)
 
-        return mode if type.to_s == 'numeric'
+        return mode if as.to_s == 'integer'
 
-        flags = []
-        flags << 'GPGME_PINENTRY_MODE_DEFAULT' if (mode & GPGME_PINENTRY_MODE_DEFAULT) != 0
-        flags << 'GPGME_PINENTRY_MODE_ASK' if (mode & GPGME_PINENTRY_MODE_ASK) != 0
-        flags << 'GPGME_PINENTRY_MODE_CANCEL' if (mode & GPGME_PINENTRY_MODE_CANCEL) != 0
-        flags << 'GPGME_PINENTRY_MODE_ERROR' if (mode & GPGME_PINENTRY_MODE_ERROR) != 0
-        flags << 'GPGME_PINENTRY_MODE_LOOPBACK' if (mode & GPGME_PINENTRY_MODE_LOOPBACK) != 0
+        flag = case mode
+          when GPGME_PINENTRY_MODE_DEFAULT
+            flag = 'default'
+          when GPGME_PINENTRY_MODE_ASK
+            flag = 'ask'
+          when GPGME_PINENTRY_MODE_CANCEL
+            flag = 'cancel'
+          when GPGME_PINENTRY_MODE_ERROR
+            flag = 'error'
+          when GPGME_PINENTRY_MODE_LOOPBACK
+            flag = 'loopback'
+          else
+            'none'
+        end
 
-        flags.empty? ? 'NONE' : flags.join(' | ')
+        flag
       end
 
       def pinentry_mode=(mode)

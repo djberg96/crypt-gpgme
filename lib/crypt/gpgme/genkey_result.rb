@@ -8,6 +8,7 @@ module Crypt
     class GenkeyResult
       include Crypt::GPGME::Constants
       include Crypt::GPGME::Functions
+      extend Crypt::GPGME::Functions
       extend Forwardable
 
       def_delegators :@key_result, :primary?, :sub?, :uid
@@ -18,9 +19,17 @@ module Crypt
 
         if obj.is_a?(Crypt::GPGME::Structs::GenkeyResult)
           @key_result = obj
+        elsif obj.is_a?(FFI::Pointer)
+          gpgme_result_ref(obj)
+          ObjectSpace.define_finalizer(self, self.class.finalize(obj))
+          @key_result = Crypt::GPGME::Structs::GenkeyResult.new(obj)
         else
           @key_result = Crypt::GPGME::Structs::GenkeyResult.new(obj)
         end
+      end
+
+      def self.finalize(obj)
+        proc{ gpgme_result_unref(obj) }
       end
 
       def object
