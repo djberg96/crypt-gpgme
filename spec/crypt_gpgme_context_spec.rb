@@ -142,6 +142,32 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'set tofu policy' do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:policy){ Crypt::GPGME::GPGME_TOFU_POLICY_AUTO }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @key_result = subject.create_key(userid, flags: flags)
+    end
+
+    after do
+      subject.delete_key(@key_result.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'set_tofu_policy basic functionality' do
+      expect(subject).to respond_to(:set_tofu_policy)
+    end
+
+    example 'set_tofu_policy works as expected' do
+      key = subject.get_key(@key_result.fingerprint)
+      expect(subject.set_tofu_policy(key, policy)).to be(policy)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
@@ -149,9 +175,14 @@ RSpec.describe Crypt::GPGME::Context do
 
     before do |example|
       subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @result = nil
     end
 
-    after do
+    after do |example|
+      if @result
+        key = subject.get_key(@result.fingerprint)
+        subject.delete_key(key, force: true)
+      end
       subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
     end
 
@@ -161,13 +192,14 @@ RSpec.describe Crypt::GPGME::Context do
 
     example 'create_key works as expected' do
       size = subject.list_keys.size
-      expect(subject.create_key(userid, flags: flags)).to be_a(Crypt::GPGME::GenkeyResult)
+      @result = subject.create_key(userid, flags: flags)
+      expect(@result).to be_a(Crypt::GPGME::GenkeyResult)
       expect(subject.list_keys.size).to eq(size + 1)
     end
 
     example 'create_key return value has expected result' do
-      result = subject.create_key('bogus2@bogus.com', flags: flags)
-      expect(result.fingerprint).to be_a(String)
+      @result = subject.create_key('bogus2@bogus.com', flags: flags)
+      expect(@result.fingerprint).to be_a(String)
     end
   end
 

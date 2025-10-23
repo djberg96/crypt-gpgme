@@ -187,6 +187,7 @@ module Crypt
       end
 
       def set_tofu_policy(key, value)
+        key = key.object if key.is_a?(Key)
         err = gpgme_op_tofu_policy(@ctx.pointer, key, value)
 
         if err != GPG_ERR_NO_ERROR
