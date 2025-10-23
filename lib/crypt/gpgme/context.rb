@@ -254,6 +254,21 @@ module Crypt
         gpgme_set_pinentry_mode(@ctx.pointer, mode)
       end
 
+      def sender
+        gpgme_get_sender(@ctx.pointer)
+      end
+
+      def sender=(address)
+        err = gpgme_set_sender(@ctx.pointer, address)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_sender failed: #{errstr}"
+        end
+
+        address
+      end
+
       def sign(data, sig = Crypt::GPGME::Structs::KeySig.new, mode = GPGME_SIG_MODE_NORMAL)
         err = gpgme_op_sign(@ctx.pointer, data, sig, mode)
 

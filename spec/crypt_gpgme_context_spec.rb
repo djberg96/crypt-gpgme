@@ -247,6 +247,24 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'sender' do
+    let(:address){ 'bogus@bogus.com' }
+
+    example 'sender basic functionality' do
+      expect(subject).to respond_to(:sender)
+      expect(subject.sender).to be_a(String).or be_nil
+    end
+
+    example 'sender= basic functionality' do
+      expect(subject).to respond_to(:sender=)
+    end
+
+    example 'sender= works as expected' do
+      expect(subject.sender = address).to eq(address)
+      expect(subject.sender).to eq(address)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
