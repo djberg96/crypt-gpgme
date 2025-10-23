@@ -199,6 +199,15 @@ RSpec.describe Crypt::GPGME::Context do
       expect(subject.pinentry_mode(as: 'integer')).to eq(Crypt::GPGME::GPGME_PINENTRY_MODE_DEFAULT)
       expect(subject.pinentry_mode(as: 'string')).to eq('default')
     end
+
+    example 'pinentry_mode= basic functionality' do
+      expect(subject).to respond_to(:pinentry_mode=)
+    end
+
+    example 'pinentry_mode= works as expected' do
+      current_mode = subject.pinentry_mode
+      expect(subject.pinentry_mode = current_mode).to eq(current_mode)
+    end
   end
 
   context 'create key', :tempfs do
