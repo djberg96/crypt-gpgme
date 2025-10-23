@@ -227,19 +227,27 @@ module Crypt
         gpgme_set_offline(@ctx.pointer, bool)
       end
 
-      def pinentry_mode(type: 'numeric')
+      def pinentry_mode(as: 'integer')
         mode = gpgme_get_pinentry_mode(@ctx.pointer)
 
-        return mode if type.to_s == 'numeric'
+        return mode if as.to_s == 'integer'
 
-        flags = []
-        flags << 'GPGME_PINENTRY_MODE_DEFAULT' if (mode & GPGME_PINENTRY_MODE_DEFAULT) != 0
-        flags << 'GPGME_PINENTRY_MODE_ASK' if (mode & GPGME_PINENTRY_MODE_ASK) != 0
-        flags << 'GPGME_PINENTRY_MODE_CANCEL' if (mode & GPGME_PINENTRY_MODE_CANCEL) != 0
-        flags << 'GPGME_PINENTRY_MODE_ERROR' if (mode & GPGME_PINENTRY_MODE_ERROR) != 0
-        flags << 'GPGME_PINENTRY_MODE_LOOPBACK' if (mode & GPGME_PINENTRY_MODE_LOOPBACK) != 0
+        flag = case mode
+          when GPGME_PINENTRY_MODE_DEFAULT
+            flag = 'default'
+          when GPGME_PINENTRY_MODE_ASK
+            flag = 'ask'
+          when GPGME_PINENTRY_MODE_CANCEL
+            flag = 'cancel'
+          when GPGME_PINENTRY_MODE_ERROR
+            flag = 'error'
+          when GPGME_PINENTRY_MODE_LOOPBACK
+            flag = 'loopback'
+          else
+            'none'
+        end
 
-        flags.empty? ? 'NONE' : flags.join(' | ')
+        flag
       end
 
       def pinentry_mode=(mode)
