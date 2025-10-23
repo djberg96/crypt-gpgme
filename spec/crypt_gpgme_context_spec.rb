@@ -210,6 +210,22 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'text mode' do
+    example 'text_mode? basic functionality' do
+      expect(subject).to respond_to(:text_mode?)
+      expect(subject.text_mode?).to be_boolean
+    end
+
+    example 'text_mode= basic functionality' do
+      expect(subject).to respond_to(:text_mode=)
+    end
+
+    example 'text_mode= works as expected' do
+      current_mode = subject.text_mode?
+      expect(subject.text_mode = current_mode).to eq(current_mode)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
