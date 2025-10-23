@@ -226,6 +226,27 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'release' do
+    example 'release basic functionality' do
+      expect(subject).to respond_to(:release)
+      expect(subject.release).to be(true)
+    end
+
+    example 'calling release multiple times is safe' do
+      expect{ 10.times{ subject.release } }.not_to raise_error
+    end
+
+    example 'released? basic functionality' do
+      expect(subject).to respond_to(:released?)
+    end
+
+    example 'release? is set to the expected value' do
+      expect(subject.released?).to be(false)
+      subject.release
+      expect(subject.released?).to be(true)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
