@@ -265,6 +265,14 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  # This feature is not guaranteed to be implemented, skipping more
+  # detailed tests for now.
+  context 'audit log' do
+    example 'get_audit_log basic functionality' do
+      expect(subject).to respond_to(:get_audit_log)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }

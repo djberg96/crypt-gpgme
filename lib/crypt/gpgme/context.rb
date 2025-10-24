@@ -106,6 +106,43 @@ module Crypt
         true
       end
 
+      def get_audit_log(flags = GPGME_AUDITLOG_DEFAULT)
+        # Create a data object to hold the audit log
+        output = Structs::Data.new
+        err = gpgme_data_new(output)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_data_new failed: #{errstr}"
+        end
+
+        # Get the audit log
+        err = gpgme_op_getauditlog(@ctx.pointer, output.pointer, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          gpgme_data_release(output.pointer)
+          raise Crypt::GPGME::Error, "gpgme_op_getauditlog failed: #{errstr}"
+        end
+
+        # Now read the audit log data, seek to the beginning first.
+        gpgme_data_seek(output.pointer, 0, 0)
+
+        result = String.new
+        buffer_size = 4096
+        buffer = FFI::MemoryPointer.new(:char, buffer_size)
+
+        loop do
+          bytes_read = gpgme_data_read(output.pointer, buffer, buffer_size)
+          break if bytes_read <= 0
+          result << buffer.read_string(bytes_read)
+        end
+
+        gpgme_data_release(output.pointer)
+
+        result
+      end
+
       def get_key(fingerprint, secret = true)
         key = FFI::MemoryPointer.new(:pointer)
         err = gpgme_get_key(@ctx.pointer, fingerprint, key, secret)
