@@ -64,6 +64,59 @@ module Crypt
         arr
       end
 
+      # TODO: Doesn't seem to work with actual fingerprint arguments
+      def set_expire_time(key, seconds, fingerprints = nil)
+        key = key.object if key.is_a?(Crypt::GPGME::Key)
+
+        if fingerprints && fingerprints != '*'
+          fingerprints = fingerprints.join("\n")
+        end
+
+        err = gpgme_op_setexpire(@ctx.pointer, key, seconds.to_i, fingerprints, 0)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setexpire failed: #{errstr}"
+        end
+
+        seconds
+      end
+
+      def set_owner_trust(key, level)
+        key = key.object if key.is_a?(Crypt::GPGME::Key)
+
+        if level.is_a?(Integer)
+          case level
+            when GPGME_VALIDITY_UNKNOWN
+              level = "unknown"
+            when GPGME_VALIDITY_UNDEFINED
+              level = "undefined"
+            when GPGME_VALIDITY_NEVER
+              level = "never"
+            when GPGME_VALIDITY_MARGINAL
+              level = "marginal"
+            when GPGME_VALIDITY_FULL
+              level = "full"
+            when GPGME_VALIDITY_ULTIMATE
+              level = "ultimate"
+            else
+              level = "unknown"
+          end
+        end
+
+        valid_strings = %w[undefined never marginal full ultimate enable disable]
+        raise ArgumentError unless valid_strings.include?(level)
+
+        err = gpgme_op_setownertrust(@ctx.pointer, key, level)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setownertrust failed: #{errstr}"
+        end
+
+        level
+      end
+
       def create_key(userid, algorithm: 'default', expires: 0, flags: 0)
         err = gpgme_op_createkey(@ctx.pointer, userid, algorithm, 0, expires, nil, flags)
 
@@ -104,6 +157,43 @@ module Crypt
         end
 
         true
+      end
+
+      def get_audit_log(flags = GPGME_AUDITLOG_DEFAULT)
+        # Create a data object to hold the audit log
+        output = Structs::Data.new
+        err = gpgme_data_new(output)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_data_new failed: #{errstr}"
+        end
+
+        # Get the audit log
+        err = gpgme_op_getauditlog(@ctx.pointer, output.pointer, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          gpgme_data_release(output.pointer)
+          raise Crypt::GPGME::Error, "gpgme_op_getauditlog failed: #{errstr}"
+        end
+
+        # Now read the audit log data, seek to the beginning first.
+        gpgme_data_seek(output.pointer, 0, 0)
+
+        result = String.new
+        buffer_size = 4096
+        buffer = FFI::MemoryPointer.new(:char, buffer_size)
+
+        loop do
+          bytes_read = gpgme_data_read(output.pointer, buffer, buffer_size)
+          break if bytes_read <= 0
+          result << buffer.read_string(bytes_read)
+        end
+
+        gpgme_data_release(output.pointer)
+
+        result
       end
 
       def get_key(fingerprint, secret = true)
@@ -252,6 +342,21 @@ module Crypt
 
       def pinentry_mode=(mode)
         gpgme_set_pinentry_mode(@ctx.pointer, mode)
+      end
+
+      def sender
+        gpgme_get_sender(@ctx.pointer)
+      end
+
+      def sender=(address)
+        err = gpgme_set_sender(@ctx.pointer, address)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_set_sender failed: #{errstr}"
+        end
+
+        address
       end
 
       def sign(data, sig = Crypt::GPGME::Structs::KeySig.new, mode = GPGME_SIG_MODE_NORMAL)

@@ -760,6 +760,12 @@ module Crypt
       LC_ALL      = 0
       LC_CTYPE    = 2
       LC_MESSAGES = 3
+
+      # Audit log
+      GPGME_AUDITLOG_DEFAULT   = 0
+      GPGME_AUDITLOG_HTML      = 1
+      GPGME_AUDITLOG_DIAG      = 2
+      GPGME_AUDITLOG_WITH_HELP = 128
     end
   end
 end

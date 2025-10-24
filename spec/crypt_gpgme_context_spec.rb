@@ -247,6 +247,129 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'sender' do
+    let(:address){ 'bogus@bogus.com' }
+
+    example 'sender basic functionality' do
+      expect(subject).to respond_to(:sender)
+      expect(subject.sender).to be_a(String).or be_nil
+    end
+
+    example 'sender= basic functionality' do
+      expect(subject).to respond_to(:sender=)
+    end
+
+    example 'sender= works as expected' do
+      expect(subject.sender = address).to eq(address)
+      expect(subject.sender).to eq(address)
+    end
+  end
+
+  # This feature is not guaranteed to be implemented, skipping more
+  # detailed tests for now.
+  context 'audit log' do
+    example 'get_audit_log basic functionality' do
+      expect(subject).to respond_to(:get_audit_log)
+    end
+  end
+
+  context 'set owner trust', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @key_result = subject.create_key(userid, flags: create_flags, expires: 100)
+      @key = subject.get_key(@key_result.fingerprint)
+    end
+
+    after do
+      subject.delete_key(@key.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'set_owner_trust basic functionality' do
+      expect(subject).to respond_to(:set_owner_trust)
+    end
+
+    example 'set_owner_trust works as expected with string argument' do
+      expect(subject.set_owner_trust(@key, "marginal")).to eq("marginal")
+      @key = subject.get_key(@key_result.fingerprint) # refresh
+      expect(@key.owner_trust).to eq(Crypt::GPGME::GPGME_VALIDITY_MARGINAL)
+    end
+
+    example 'set_owner_trust works as expected with integer argument' do
+      expect(subject.set_owner_trust(@key, Crypt::GPGME::GPGME_VALIDITY_MARGINAL)).to eq("marginal")
+      @key = subject.get_key(@key_result.fingerprint) # refresh
+      expect(@key.owner_trust).to eq(Crypt::GPGME::GPGME_VALIDITY_MARGINAL)
+    end
+
+    example 'set_owner_trust raises an argument error if the string is invalid' do
+      expect{ subject.set_owner_trust(@key, 'bogus') }.to raise_error(ArgumentError)
+    end
+  end
+
+  context 'set expire time', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      key_result = subject.create_key(userid, flags: create_flags, expires: 100)
+      @key = subject.get_key(key_result.fingerprint)
+    end
+
+    after do
+      subject.delete_key(@key.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'set_expire_time basic functionality' do
+      expect(subject).to respond_to(:set_expire_time)
+    end
+
+    example 'set_expire_time sets expire time on primary subkey with no argument' do
+      expire_time = 200
+      original_subkeys = @key.subkeys
+
+      expect(subject.set_expire_time(@key, expire_time)).to eq(expire_time)
+
+      updated_key = subject.get_key(@key.fingerprint) # Reload for updated info
+
+      expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
+      expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires)
+    end
+
+    xexample 'set_expire_time sets expire time on primary subkey with asterisk argument' do
+      expire_time = 200
+      original_subkeys = @key.subkeys
+
+      expect(subject.set_expire_time(@key, expire_time, '*')).to eq(expire_time)
+
+      updated_key = subject.get_key(@key.fingerprint) # Reload for updated info
+
+      expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
+      expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires + 100)
+    end
+
+    xexample 'set_expire_time sets expire time on primary subkey with explicit fingerprints' do
+      expire_time = 200
+      original_subkeys = @key.subkeys
+      fingerprints = original_subkeys.map(&:fingerprint)
+
+      expect(subject.set_expire_time(@key, expire_time, fingerprints)).to eq(expire_time)
+
+      updated_key = subject.get_key(@key.fingerprint) # Reload for updated info
+
+      expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
+      expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires + 100)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
