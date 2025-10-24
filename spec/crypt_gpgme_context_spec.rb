@@ -300,11 +300,35 @@ RSpec.describe Crypt::GPGME::Context do
 
       expect(subject.set_expire_time(@key, expire_time)).to eq(expire_time)
 
-      # Reload the key to get updated expiry times
-      updated_key = subject.get_key(@key.fingerprint)
+      updated_key = subject.get_key(@key.fingerprint) # Reload for updated info
 
       expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
       expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires)
+    end
+
+    xexample 'set_expire_time sets expire time on primary subkey with asterisk argument' do
+      expire_time = 200
+      original_subkeys = @key.subkeys
+
+      expect(subject.set_expire_time(@key, expire_time, '*')).to eq(expire_time)
+
+      updated_key = subject.get_key(@key.fingerprint) # Reload for updated info
+
+      expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
+      expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires + 100)
+    end
+
+    xexample 'set_expire_time sets expire time on primary subkey with explicit fingerprints' do
+      expire_time = 200
+      original_subkeys = @key.subkeys
+      fingerprints = original_subkeys.map(&:fingerprint)
+
+      expect(subject.set_expire_time(@key, expire_time, fingerprints)).to eq(expire_time)
+
+      updated_key = subject.get_key(@key.fingerprint) # Reload for updated info
+
+      expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
+      expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires + 100)
     end
   end
 

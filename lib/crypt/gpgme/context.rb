@@ -64,6 +64,7 @@ module Crypt
         arr
       end
 
+      # TODO: Doesn't seem to work with actual fingerprint arguments
       def set_expire_time(key, seconds, fingerprints = nil)
         key = key.object if key.is_a?(Crypt::GPGME::Key)
 
