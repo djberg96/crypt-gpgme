@@ -82,6 +82,41 @@ module Crypt
         seconds
       end
 
+      def set_owner_trust(key, level)
+        key = key.object if key.is_a?(Crypt::GPGME::Key)
+
+        if level.is_a?(Integer)
+          case level
+            when GPGME_VALIDITY_UNKNOWN
+              level = "unknown"
+            when GPGME_VALIDITY_UNDEFINED
+              level = "undefined"
+            when GPGME_VALIDITY_NEVER
+              level = "never"
+            when GPGME_VALIDITY_MARGINAL
+              level = "marginal"
+            when GPGME_VALIDITY_FULL
+              level = "full"
+            when GPGME_VALIDITY_ULTIMATE
+              level = "ultimate"
+            else
+              level = "unknown"
+          end
+        end
+
+        valid_strings = %w[undefined never marginal full ultimate enable disable]
+        raise ArgumentError unless valid_strings.include?(level)
+
+        err = gpgme_op_setownertrust(@ctx.pointer, key, level)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setownertrust failed: #{errstr}"
+        end
+
+        level
+      end
+
       def create_key(userid, algorithm: 'default', expires: 0, flags: 0)
         err = gpgme_op_createkey(@ctx.pointer, userid, algorithm, 0, expires, nil, flags)
 

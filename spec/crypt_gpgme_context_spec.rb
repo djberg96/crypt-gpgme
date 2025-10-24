@@ -273,7 +273,45 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
-  context 'set_expire_time', :tempfs do
+  context 'set owner trust', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @key_result = subject.create_key(userid, flags: create_flags, expires: 100)
+      @key = subject.get_key(@key_result.fingerprint)
+    end
+
+    after do
+      subject.delete_key(@key.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'set_owner_trust basic functionality' do
+      expect(subject).to respond_to(:set_owner_trust)
+    end
+
+    example 'set_owner_trust works as expected with string argument' do
+      expect(subject.set_owner_trust(@key, "marginal")).to eq("marginal")
+      @key = subject.get_key(@key_result.fingerprint) # refresh
+      expect(@key.owner_trust).to eq(Crypt::GPGME::GPGME_VALIDITY_MARGINAL)
+    end
+
+    example 'set_owner_trust works as expected with integer argument' do
+      expect(subject.set_owner_trust(@key, Crypt::GPGME::GPGME_VALIDITY_MARGINAL)).to eq("marginal")
+      @key = subject.get_key(@key_result.fingerprint) # refresh
+      expect(@key.owner_trust).to eq(Crypt::GPGME::GPGME_VALIDITY_MARGINAL)
+    end
+
+    example 'set_owner_trust raises an argument error if the string is invalid' do
+      expect{ subject.set_owner_trust(@key, 'bogus') }.to raise_error(ArgumentError)
+    end
+  end
+
+  context 'set expire time', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
     let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
