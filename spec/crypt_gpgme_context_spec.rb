@@ -273,6 +273,41 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'set_expire_time', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      key_result = subject.create_key(userid, flags: create_flags, expires: 100)
+      @key = subject.get_key(key_result.fingerprint)
+    end
+
+    after do
+      subject.delete_key(@key.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'set_expire_time basic functionality' do
+      expect(subject).to respond_to(:set_expire_time)
+    end
+
+    example 'set_expire_time sets expire time on primary subkey with no argument' do
+      expire_time = 200
+      original_subkeys = @key.subkeys
+
+      expect(subject.set_expire_time(@key, expire_time)).to eq(expire_time)
+
+      # Reload the key to get updated expiry times
+      updated_key = subject.get_key(@key.fingerprint)
+
+      expect(updated_key.subkeys.first.expires).to eq(original_subkeys.first.expires + 100)
+      expect(updated_key.subkeys.last.expires).to eq(original_subkeys.last.expires)
+    end
+  end
+
   context 'create key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }

@@ -64,6 +64,23 @@ module Crypt
         arr
       end
 
+      def set_expire_time(key, seconds, fingerprints = nil)
+        key = key.object if key.is_a?(Crypt::GPGME::Key)
+
+        if fingerprints && fingerprints != '*'
+          fingerprints = fingerprints.join("\n")
+        end
+
+        err = gpgme_op_setexpire(@ctx.pointer, key, seconds.to_i, fingerprints, 0)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_setexpire failed: #{errstr}"
+        end
+
+        seconds
+      end
+
       def create_key(userid, algorithm: 'default', expires: 0, flags: 0)
         err = gpgme_op_createkey(@ctx.pointer, userid, algorithm, 0, expires, nil, flags)
 
