@@ -69,7 +69,9 @@ module Crypt
 
       def signatures
         signature_array = []
-        signature = @key[:subkeys]
+        signature = @userid[:signatures]
+
+        return signature_array if signature.null?
         signature_array << signature
 
         loop do
