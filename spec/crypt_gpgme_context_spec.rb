@@ -273,6 +273,36 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  xcontext 'sign key', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @key_result = subject.create_key(userid, flags: create_flags, expires: 100)
+      @key = subject.get_key(@key_result.fingerprint)
+    end
+
+    after do
+      subject.delete_key(@key.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'sign_key basic functionality' do
+      expect(subject).to respond_to(:sign_key)
+    end
+
+    example 'sign_key works for a single userid' do
+      expect(@key.uids.all?{ |uid| uid.signatures.empty? }).to be(true)
+      expect(subject.sign_key(@key, userid, 100, Crypt::GPGME::GPGME_KEYSIGN_LOCAL)).to be(true)
+
+      @key = subject.get_key(@key_result.fingerprint) # refresh
+      expect(@key.uids.all?{ |uid| uid.signatures.empty? }).to be(false)
+    end
+  end
+
   context 'set owner trust', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
