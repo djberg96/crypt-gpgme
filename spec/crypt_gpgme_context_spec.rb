@@ -282,11 +282,14 @@ RSpec.describe Crypt::GPGME::Context do
 
     before do |example|
       subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @original_mode = subject.keylist_mode
       @key_result = subject.create_key(userid, flags: create_flags, expires: 100)
       @key = subject.get_key(@key_result.fingerprint)
+      subject.keylist_mode = keylist_mode
     end
 
     after do
+      subject.keylist_mode = @original_mode
       subject.delete_key(@key.fingerprint, force: true)
       subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
     end
@@ -299,15 +302,8 @@ RSpec.describe Crypt::GPGME::Context do
       expect(@key.uids.all?{ |uid| uid.signatures.empty? }).to be(true)
       expect(subject.sign_key(@key, userid, 100, Crypt::GPGME::GPGME_KEYSIGN_LOCAL | Crypt::GPGME::GPGME_KEYSIGN_FORCE)).to be(true)
 
-      # Set keylist mode to include signatures
-      original_mode = subject.keylist_mode
-      subject.keylist_mode = keylist_mode
-
       @key = subject.get_key(@key_result.fingerprint) # refresh
       expect(@key.uids.all?{ |uid| uid.signatures.empty? }).to be(false)
-
-      # Restore original mode
-      subject.keylist_mode = original_mode
     end
   end
 
