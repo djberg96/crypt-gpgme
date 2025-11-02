@@ -273,11 +273,12 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
-  xcontext 'sign key', :tempfs do
+  context 'sign key', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
-    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD | Crypt::GPGME::GPGME_CREATE_SIGN }
     let(:delete_flags) { Crypt::GPGME::GPGME_DELETE_ALLOW_SECRET | Crypt::GPGME::GPGME_DELETE_FORCE }
+    let(:keylist_mode) { Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS }
 
     before do |example|
       subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
@@ -296,10 +297,17 @@ RSpec.describe Crypt::GPGME::Context do
 
     example 'sign_key works for a single userid' do
       expect(@key.uids.all?{ |uid| uid.signatures.empty? }).to be(true)
-      expect(subject.sign_key(@key, userid, 100, Crypt::GPGME::GPGME_KEYSIGN_LOCAL)).to be(true)
+      expect(subject.sign_key(@key, userid, 100, Crypt::GPGME::GPGME_KEYSIGN_LOCAL | Crypt::GPGME::GPGME_KEYSIGN_FORCE)).to be(true)
+
+      # Set keylist mode to include signatures
+      original_mode = subject.keylist_mode
+      subject.keylist_mode = keylist_mode
 
       @key = subject.get_key(@key_result.fingerprint) # refresh
       expect(@key.uids.all?{ |uid| uid.signatures.empty? }).to be(false)
+
+      # Restore original mode
+      subject.keylist_mode = original_mode
     end
   end
 
