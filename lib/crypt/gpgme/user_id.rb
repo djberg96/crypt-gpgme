@@ -72,7 +72,7 @@ module Crypt
         signature = @userid[:signatures]
 
         return signature_array if signature.null?
-        signature_array << signature
+        signature_array << Crypt::GPGME::KeySignature.new(signature)
 
         loop do
           signature = Crypt::GPGME::Structs::KeySig.new(signature[:next])
