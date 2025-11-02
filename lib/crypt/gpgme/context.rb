@@ -117,6 +117,24 @@ module Crypt
         level
       end
 
+      def sign_key(key, userid = nil, expires = 0, flags = 0)
+        key = key.object if key.is_a?(Crypt::GPGME::Key)
+
+        if userid.is_a?(Array)
+          userid = userid.join("\n")
+          flags |= Crypt::GPGME::GPGME_KEYSIGN_LFSEP
+        end
+
+        err = gpgme_op_keysign(@ctx.pointer, key, userid, expires, flags)
+
+        if err != GPG_ERR_NO_ERROR
+          errstr = gpgme_strerror(err)
+          raise Crypt::GPGME::Error, "gpgme_op_keysign failed: #{errstr}"
+        end
+
+        true
+      end
+
       def create_key(userid, algorithm: 'default', expires: 0, flags: 0)
         err = gpgme_op_createkey(@ctx.pointer, userid, algorithm, 0, expires, nil, flags)
 

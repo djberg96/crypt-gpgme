@@ -14,12 +14,12 @@ module Crypt
         return if obj.nil?
         return obj if obj.is_a?(KeySignature)
 
-        if obj.is_a?(Crypt::GPGME::Structs::KeySignature)
+        if obj.is_a?(Crypt::GPGME::Structs::KeySig)
           @keysig = obj
         elsif obj.is_a?(FFI::MemoryPointer)
-          @keysig = Crypt::GPGME::Structs::KeySignature.new(obj)
+          @keysig = Crypt::GPGME::Structs::KeySig.new(obj)
         else
-          @keysig = Crypt::GPGME::Structs::KeySignature.new
+          @keysig = Crypt::GPGME::Structs::KeySig.new
         end
       end
 

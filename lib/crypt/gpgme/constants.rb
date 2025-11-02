@@ -750,6 +750,21 @@ module Crypt
       GPGME_SIG_MODE_ARCHIVE = 4
       GPGME_SIG_MODE_FILE    = 8
 
+      # Encryption
+      GPGME_ENCRYPT_ALWAYS_TRUST = 1
+      GPGME_ENCRYPT_NO_ENCRYPT_TO = 2
+      GPGME_ENCRYPT_PREPARE = 4
+      GPGME_ENCRYPT_EXPECT_SIGN = 8
+      GPGME_ENCRYPT_NO_COMPRESS = 16
+      GPGME_ENCRYPT_SYMMETRIC = 32
+      GPGME_ENCRYPT_THROW_KEYIDS = 64
+      GPGME_ENCRYPT_WRAP = 128
+      GPGME_ENCRYPT_WANT_ADDRESS = 256
+      GPGME_ENCRYPT_ARCHIVE = 512
+      GPGME_ENCRYPT_FILE = 1024
+      GPGME_ENCRYPT_ADD_RECP = 2048
+      GPGME_ENCRYPT_CHG_RECP = 4096
+
       # These value are not really meant to be exposed and could change in
       # future versions, but I'm not sure what other option we have.
       GPGME_DELETE_ALLOW_SECRET = 1
