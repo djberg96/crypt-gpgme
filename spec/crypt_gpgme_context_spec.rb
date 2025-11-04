@@ -307,6 +307,36 @@ RSpec.describe Crypt::GPGME::Context do
     end
   end
 
+  context 'signers', :tempfs do
+    let(:engine){ subject.get_engine_info.first }
+    let(:userid){ 'bogus@bogus.com' }
+    let(:create_flags) { Crypt::GPGME::GPGME_CREATE_NOPASSWD | Crypt::GPGME::GPGME_CREATE_SIGN }
+    let(:keylist_mode) { Crypt::GPGME::GPGME_KEYLIST_MODE_LOCAL | Crypt::GPGME::GPGME_KEYLIST_MODE_SIGS }
+
+    before do |example|
+      subject.set_engine_info(engine.protocol, engine.file_name, example.metadata[:tmpdir])
+      @original_mode = subject.keylist_mode
+      key_result = subject.create_key(userid, flags: create_flags, expires: 100)
+      @key = subject.get_key(key_result.fingerprint)
+      subject.keylist_mode = keylist_mode
+    end
+
+    after do
+      subject.keylist_mode = @original_mode
+      subject.delete_key(@key.fingerprint, force: true)
+      subject.set_engine_info(engine.protocol, engine.file_name, engine.home_dir)
+    end
+
+    example 'count_signers basic functionality' do
+      expect(subject).to respond_to(:count_signers)
+      expect(subject.count_signers).to be_a(Numeric)
+    end
+
+    example 'count_signers returns the expected value' do
+      expect(subject.count_signers).to eq(0)
+    end
+  end
+
   context 'set owner trust', :tempfs do
     let(:engine){ subject.get_engine_info.first }
     let(:userid){ 'bogus@bogus.com' }
