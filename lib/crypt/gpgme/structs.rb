@@ -131,7 +131,7 @@ module Crypt
           :email, :string,
           :comment, :string,
           :sig_class, :uint,
-          :notations, :pointer,
+          :notations, SigNotation.by_ref,
           :_last_notation, :pointer,
           :trust_scope, :string
         )
