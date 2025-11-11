@@ -14,7 +14,7 @@ module Crypt
         :can_encrypt?, :can_sign?, :can_certify?, :secret?, :can_authenticate?,
         :is_qualified?, :has_encrypt?, :has_sign?, :has_certify?, :has_authenticate?
 
-      def initialize(obj)
+      def initialize(obj, ref: false)
         return if obj.nil?
         return obj if obj.is_a?(Key)
 
@@ -25,6 +25,12 @@ module Crypt
         else
           @key = Crypt::GPGME::Structs::Key.new
         end
+
+        if ref
+          gpgme_key_ref(@key)
+        end
+
+        ObjectSpace.define_finalizer(self, self.class.finalize(@key)) if ref
       end
 
       def object
@@ -33,6 +39,28 @@ module Crypt
 
       def to_hash
         @key.to_hash
+      end
+
+      def self.finalize(key)
+        proc{ gpgme_key_unref(key) }
+      end
+
+      def keyid
+        @key[:keyid]
+      end
+
+      alias id keyid
+
+      def length
+        @key[:length]
+      end
+
+      def algo
+        @key[:algo]
+      end
+
+      def grip
+        @key[:grip]
       end
 
       def chain_id
