@@ -28,9 +28,8 @@ module Crypt
 
         if ref
           gpgme_key_ref(@key)
+          ObjectSpace.define_finalizer(self, self.class.finalize(@key))
         end
-
-        ObjectSpace.define_finalizer(self, self.class.finalize(@key)) if ref
       end
 
       def object
