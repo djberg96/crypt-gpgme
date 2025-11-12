@@ -44,34 +44,12 @@ module Crypt
         proc{ gpgme_key_unref(key) }
       end
 
-      def keyid
-        @key[:keyid]
-      end
-
-      alias id keyid
-
-      def length
-        @key[:length]
-      end
-
-      def algo
-        @key[:algo]
-      end
-
-      def grip
-        @key[:grip]
-      end
-
-      def chain_id
-        @key[:chain_id]
-      end
-
-      def owner_trust
-        @key[:owner_trust]
-      end
-
-      def protocol
-        @key[:protocol]
+      def protocol(as: 'integer')
+        if as == 'integer'
+          @key[:protocol]
+        else
+          gpgme_get_protocol_name(@key[:protocol])
+        end
       end
 
       def issuer_serial
@@ -80,6 +58,14 @@ module Crypt
 
       def issuer_name
         @key[:issuer_name]
+      end
+
+      def chain_id
+        @key[:chain_id]
+      end
+
+      def owner_trust
+        @key[:owner_trust]
       end
 
       def keylist_mode
