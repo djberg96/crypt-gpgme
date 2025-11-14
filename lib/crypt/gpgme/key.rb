@@ -14,7 +14,7 @@ module Crypt
         :can_encrypt?, :can_sign?, :can_certify?, :secret?, :can_authenticate?,
         :is_qualified?, :has_encrypt?, :has_sign?, :has_certify?, :has_authenticate?
 
-      def initialize(obj)
+      def initialize(obj, ref: false)
         return if obj.nil?
         return obj if obj.is_a?(Key)
 
@@ -24,6 +24,11 @@ module Crypt
           @key = Crypt::GPGME::Structs::Key.new(obj)
         else
           @key = Crypt::GPGME::Structs::Key.new
+        end
+
+        if ref
+          gpgme_key_ref(@key)
+          ObjectSpace.define_finalizer(self, self.class.finalize(@key))
         end
       end
 
@@ -35,16 +40,16 @@ module Crypt
         @key.to_hash
       end
 
-      def chain_id
-        @key[:chain_id]
+      def self.finalize(key)
+        proc{ gpgme_key_unref(key) }
       end
 
-      def owner_trust
-        @key[:owner_trust]
-      end
-
-      def protocol
-        @key[:protocol]
+      def protocol(as: 'integer')
+        if as == 'integer'
+          @key[:protocol]
+        else
+          gpgme_get_protocol_name(@key[:protocol])
+        end
       end
 
       def issuer_serial
@@ -53,6 +58,14 @@ module Crypt
 
       def issuer_name
         @key[:issuer_name]
+      end
+
+      def chain_id
+        @key[:chain_id]
+      end
+
+      def owner_trust
+        @key[:owner_trust]
       end
 
       def keylist_mode

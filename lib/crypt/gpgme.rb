@@ -10,6 +10,7 @@ require_relative 'gpgme/user_id'
 require_relative 'gpgme/key_signature'
 require_relative 'gpgme/revocation_key'
 require_relative 'gpgme/genkey_result'
+require_relative 'gpgme/signature_notation'
 
 module Crypt
   class GPGME

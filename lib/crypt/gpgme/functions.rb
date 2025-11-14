@@ -124,6 +124,10 @@ module Crypt
       attach_function :gpgme_set_protocol, [Structs::Context, :uint], :uint
       attach_function :gpgme_set_sender, [Structs::Context, :string], :uint
       attach_function :gpgme_set_textmode, [Structs::Context, :bool], :void
+      attach_function :gpgme_signers_clear, [Structs::Context], :void
+      attach_function :gpgme_signers_add, [Structs::Context, Structs::Key], :gpgme_error_t
+      attach_function :gpgme_signers_count, [Structs::Context], :uint
+      attach_function :gpgme_signers_enum, [Structs::Context, :int], Structs::Key
       attach_function :gpgme_strerror, [:uint], :string
       attach_function :gpgme_strerror_r, [:uint, :buffer_in, :size_t], :uint
       attach_function :gpgme_strsource, [:uint], :string

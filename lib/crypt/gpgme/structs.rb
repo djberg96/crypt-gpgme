@@ -131,7 +131,7 @@ module Crypt
           :email, :string,
           :comment, :string,
           :sig_class, :uint,
-          :notations, :pointer,
+          :notations, SigNotation.by_ref,
           :_last_notation, :pointer,
           :trust_scope, :string
         )
@@ -305,23 +305,29 @@ module Crypt
           uid = self[:uids]
           subkey = self[:subkeys]
 
-          uid_array << uid
-          subkey_array << subkey
-
-          loop do
-            uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
-            break if uid.null?
+          if !uid.null?
             uid_array << uid
+
+            loop do
+              uid = Crypt::GPGME::Structs::UserId.new(uid[:next])
+              break if uid.null?
+              uid_array << uid
+            end
+
+            hash[:uids] = uid_array.map(&:to_hash)
           end
 
-          loop do
-            subkey = Crypt::GPGME::Structs::Subkey.new(subkey[:next])
-            break if subkey.null?
+          if !subkey.null?
             subkey_array << subkey
-          end
 
-          hash[:uids] = uid_array.map(&:to_hash)
-          hash[:subkeys] = subkey_array.map(&:to_hash)
+            loop do
+              subkey = Crypt::GPGME::Structs::Subkey.new(subkey[:next])
+              break if subkey.null?
+              subkey_array << subkey
+            end
+
+            hash[:subkeys] = subkey_array.map(&:to_hash)
+          end
 
           hash
         end

@@ -388,6 +388,14 @@ module Crypt
         sig
       end
 
+      def clear_signers
+        gpgme_signers_clear(@ctx.pointer)
+      end
+
+      def count_signers
+        gpgme_signers_count(@ctx.pointer)
+      end
+
       def text_mode?
         gpgme_get_textmode(@ctx.pointer)
       end
